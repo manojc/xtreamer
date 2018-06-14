@@ -1,24 +1,34 @@
 {
-  "name": "xtreamer",
-  "version": "0.0.0",
-  "description": "A NodeJS package to read XML files using NodeJS streams.",
-  "main": "index.js",
-  "scripts": {
-    "test": "npm run test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/manojc/xtreamer.git"
-  },
-  "keywords": [
-    "xml",
-    "streams",
-    "reader"
-  ],
-  "author": "Manoj Chalode <chalodem@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/manojc/xtreamer/issues"
-  },
-  "homepage": "https://github.com/manojc/xtreamer#readme"
+    "name": "xtreamer",
+    "version": "0.0.0",
+    "description": "A NodeJS package to read XML files using NodeJS streams.",
+    "main": "index.js",
+    "scripts": {
+        "test": "npm run test",
+        "tsc" : "./node_modules/typescript/bin/tsc",
+        "tscw" : "./node_modules/typescript/bin/tsc -w"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/manojc/xtreamer.git"
+    },
+    "keywords": [
+        "xml",
+        "streams",
+        "reader"
+    ],
+    "author": "Manoj Chalode <chalodem@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/manojc/xtreamer/issues"
+    },
+    "homepage": "https://github.com/manojc/xtreamer#readme",
+    "dependencies": {
+        "fs": "0.0.1-security"
+    },
+    "devDependencies": {
+        "@types/node": "^10.3.0",
+        "http": "0.0.0",
+        "typescript": "^2.9.2"
+    }
 }
