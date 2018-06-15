@@ -6,19 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-        }
-        h1 {
-            text-align: center;
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/public/index.css">
 </head>
 
 <body>
-    <h1>Select XML File</h1>
+    <h1>Xtreamer XML To JSON Converter</h1>
+    <form action="/action_page.php">
+        <div class="container">
+            <label for="uname">
+                <b>
+                    XML File
+                    <span class="required">*</span> 
+                </b>
+            </label>
+            <input type="file" placeholder="Enter Username" name="uname" required>
+            <label for="psw">
+                <b>Root Node</b>
+            </label>
+            <input type="text" placeholder="XML Node Name" name="psw" required>
+            <button>Convert XML</button>
+        </div>
+    </form>
 </body>
 <script src="/public/index.js"></script>
 </html>
