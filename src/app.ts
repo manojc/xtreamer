@@ -15,6 +15,8 @@ export namespace App {
     function onRequest(request: IncomingMessage, response: ServerResponse): void {
         if (request.url === "/") {
             return response.end(readFileSync(join(__dirname, '../public/index.html')));
+        } else if (request.url === "/favicon.ico") {
+            return response.end(readFileSync(join(__dirname, '../public/favicon.ico')));
         } else if (request.url.indexOf('/public') > -1) {
             return response.end(readFileSync(join(__dirname, `..${request.url}`)));
         } else if (request.url.indexOf('/api') > -1) {

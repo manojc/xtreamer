@@ -4,9 +4,11 @@
     "description": "A NodeJS package to read XML files using NodeJS streams.",
     "main": "index.js",
     "scripts": {
+        "start": "npm run tsc && npm run pm2 && npm run tscw",
         "test": "npm run test",
-        "tsc" : "./node_modules/typescript/bin/tsc",
-        "tscw" : "./node_modules/typescript/bin/tsc -w"
+        "pm2": "./node_modules/pm2/bin/pm2 start apps.json",
+        "tsc": "./node_modules/typescript/bin/tsc",
+        "tscw": "./node_modules/typescript/bin/tsc -w"
     },
     "repository": {
         "type": "git",
@@ -29,6 +31,7 @@
     "devDependencies": {
         "@types/node": "^10.3.0",
         "http": "0.0.0",
+        "pm2": "^2.10.4",
         "typescript": "^2.9.2"
     }
 }
