@@ -1,5 +1,10 @@
 export class Config {
 
+    public constructor(url: string, batchSize?: number) {
+        this.url = url;
+        this.batchSize = batchSize;
+    }
+
     private _url: string;
     public get url(): string {
         return this._url;

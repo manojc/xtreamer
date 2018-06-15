@@ -11,22 +11,21 @@
 
 <body>
     <h1>Xtreamer XML To JSON Converter</h1>
-    <form action="/action_page.php">
-        <div class="container">
-            <label for="uname">
-                <b>
-                    XML File
-                    <span class="required">*</span> 
-                </b>
-            </label>
-            <input type="file" placeholder="Enter Username" name="uname" required>
-            <label for="psw">
-                <b>Root Node</b>
-            </label>
-            <input type="text" placeholder="XML Node Name" name="psw" required>
-            <button>Convert XML</button>
-        </div>
-    </form>
+    <div class="container">
+        <label for="uname">
+            <b>
+                XML File
+                <span class="required">*</span>
+            </b>
+        </label>
+        <!-- <input id="fileInput" type="file" placeholder="Upload XML File" accept=".xml" name="file input" required> -->
+        <input id="fileInput" type="text" placeholder="Provide XML URL" name="URL input" required>
+        <label for="psw">
+            <b>Root Node</b>
+        </label>
+        <input id="rootNodeInput" type="text" placeholder="XML Node Name" name="root node">
+        <button id="submitBtn">Convert XML</button>
+    </div>
 </body>
 <script src="/public/index.js"></script>
 </html>

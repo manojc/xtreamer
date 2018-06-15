@@ -5,7 +5,7 @@ export namespace Xtreamer {
 
     const BUFFER_SIZE: number = 100;
 
-    export function readFile(config: Config): void {
+    export function readFile(config: Config): ReadStream {
 
         if (!validateConfig(config)) {
             return;
@@ -30,6 +30,8 @@ export namespace Xtreamer {
         stream.on('error', (error: any) => {
             config.onErrorCallBack(error);
         });
+
+        return stream;
     }
 
     function validateConfig(Config: Config): boolean {
