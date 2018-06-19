@@ -6,9 +6,9 @@ export class Xstreamer {
 
     private _storage: DatabaseStorage;
     private _config: XtreamerConfig;
-    private chunks: Array<string> = [];
+    private _chunks: Array<string> = [];
     private _buffer: Request;
-    private fileId: string;
+    private _fileId: string;
 
     public constructor() {
         this._storage = new DatabaseStorage();
@@ -23,7 +23,7 @@ export class Xstreamer {
                 this._config = config;
                 return this._storage.addFile(fileUrl)
                     .then((_id: string) => {
-                        this.fileId = _id;
+                        this._fileId = _id;
                         this._initStream(fileUrl);
                     })
                     .catch((error: any) => Promise.reject(error));
@@ -42,16 +42,16 @@ export class Xstreamer {
 
     private _onStreamComplete(): void {
         //update file collection status
-        this._storage.updateFile(this.fileId);
+        this._storage.updateFile(this._fileId);
         //call success callback function, if provided.
         if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
-            this._config.onSuccess(this.fileId);
+            this._config.onSuccess(this._fileId);
         }        
     }
 
     private _onStreamData(chunk: Buffer): void {
-        this.chunks.push(chunk.toString());
-        if (this.chunks.length >= this._config.chunkSize) {
+        this._chunks.push(chunk.toString());
+        if (this._chunks.length >= this._config.chunkSize) {
             this._buffer.pause();
             this._insertChunks();
         }
@@ -59,7 +59,7 @@ export class Xstreamer {
 
     private _onStreamError(error: Error): void {
         //rollback the database changes
-        this._storage.removeFile(this.fileId);
+        this._storage.removeFile(this._fileId);
         //call error callback function, if provided.
         if (!!this._config.onError && typeof this._config.onError === "function") {
             this._config.onError(error);
@@ -68,12 +68,12 @@ export class Xstreamer {
 
     private _insertChunks(): void {
         //keep sending the processed data through the callback function, if provided.
-        this._storage.addChunks(this.fileId, this.chunks)
+        this._storage.addChunks(this._fileId, this._chunks)
             .then((chunkIds: Array<string>) => {
                 if (!!this._config.onChunkProcesed && typeof this._config.onChunkProcesed === "function") {
                     this._config.onChunkProcesed(chunkIds.join(', '));
                 }
-                this.chunks = [];
+                this._chunks = [];
                 this._buffer.resume();
             })
             .catch((error: any) => {
