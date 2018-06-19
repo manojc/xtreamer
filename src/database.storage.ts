@@ -12,6 +12,9 @@ class DatabaseStorage {
     private _config: XtreamerConfig;
 
     public init(config: XtreamerConfig): Promise<void> {
+        if (!!this._config) {
+            Promise.resolve();
+        }
         return this._validate(config)
             .then(() => { return this._connect() })
             .catch((error: any) => Promise.reject(error));

@@ -12,33 +12,20 @@ export class Xstreamer {
         this._storage = new DatabaseStorage();
     }
 
-    public stream(url: string, config: XtreamerConfig): Promise<void> {
-
-        if (!this._config) {
-            return this._storage.init(config)
-                .then(() => {
-                    if (!url || typeof url !== "string" || !url.trim()) {
-                        return Promise.reject("invalid file URL!");
-                    }
-                    this._config = config;
-                    return this._storage.addFile(url)
-                        .then((_id: string) => this._stream(url, _id))
-                        .catch((error: any) => Promise.reject(error));
-                })
-                .catch((error: any) => {
-                    return Promise.reject(error);
-                });
-        }
-        
-        if (!url || typeof url !== "string" || !url.trim()) {
+    public stream(fileUrl: string, config: XtreamerConfig): Promise<void> {
+        if (!fileUrl || typeof fileUrl !== "string" || !fileUrl.trim()) {
             return Promise.reject("invalid file URL!");
         }
-
-        this._config = config;
-        
-        return this._storage.addFile(url)
-            .then((_id: string) => this._stream(url, _id))
-            .catch((error: any) => Promise.reject(error));
+        return this._storage.init(config)
+            .then(() => {
+                this._config = config;
+                return this._storage.addFile(fileUrl)
+                    .then((_id: string) => this._stream(fileUrl, _id))
+                    .catch((error: any) => Promise.reject(error));
+            })
+            .catch((error: any) => {
+                return Promise.reject(error);
+            });
     }
 
     private _stream(url: string, fileId: string): void {
