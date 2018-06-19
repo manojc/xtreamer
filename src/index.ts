@@ -1,40 +1,61 @@
-import { createReadStream, ReadStream } from "fs";
-import { Config } from "./config.model";
+import { get } from "request";
+import { DatabaseStorage } from "./database.storage";
+import { XtreamerConfig } from "./streamer.config";
 
-export namespace Xtreamer {
+export class Xstreamer {
 
-    const BUFFER_SIZE: number = 100;
+    private _storage: DatabaseStorage;
+    private _config: XtreamerConfig;
 
-    export function readFile(config: Config): ReadStream {
-
-        if (!validateConfig(config)) {
-            return;
+    public stream(url: string, config: XtreamerConfig): Promise<void> {
+        
+        if (!this._config) {
+            try {
+                this._storage = new DatabaseStorage(config);
+            } catch (error) {
+                return Promise.reject(error);
+            }
         }
 
-        const stream: ReadStream = createReadStream(config.url, {
-            flags: "r",
-            encoding: "utf8",
-            start: 0,
-            end: config.batchSize || BUFFER_SIZE
-        });
+        this._config = config;
+        
+        if (!url || typeof url !== "string" || !url.trim()) {
+            return Promise.reject("invalid file URL!");
+        }
 
-        stream.on('data', (data: any) => {
-            stream.destroy();
-            config.onDataCallBack(null, data);
-        });
-
-        stream.on('close', () => {
-            config.onEndCallBack(null);
-        });
-
-        stream.on('error', (error: any) => {
-            config.onErrorCallBack(error);
-        });
-
-        return stream;
+        return this._storage.addFile(url)
+            .then((_id: string) => this._stream(url, _id))
+            .catch((error: any) => Promise.reject(error));
     }
 
-    function validateConfig(Config: Config): boolean {
-        return true;
+    private _stream(url: string, fileId: string): void {
+        get(url)
+            .on('complete', () => {
+                //call success callback function, if provided.
+                if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
+                    this._config.onSuccess(fileId);
+                }
+            })
+            .on('data', (chunk: Buffer) => {
+                //keep sending the processed data through the callback function, if provided.
+                this._storage.addChunk(fileId, chunk.toString())
+                    .then((chunkId: string) => {
+                        if (!!this._config.onChunkProcesed && typeof this._config.onChunkProcesed === "function") {
+                            this._config.onChunkProcesed(fileId);
+                        }
+                    })
+                    .catch((error: any) => {
+                        //call error callback function, if provided.
+                        if (!!this._config.onError && typeof this._config.onError === "function") {
+                            this._config.onError(error);
+                        }
+                    });
+            })
+            .on("error", (error: Error) => {
+                //call error callback function, if provided.
+                if (!!this._config.onError && typeof this._config.onError === "function") {
+                    this._config.onError(error);
+                }
+            });
     }
 }
