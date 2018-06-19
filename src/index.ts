@@ -39,12 +39,14 @@ export class Xstreamer {
             })
             .on('data', (chunk: Buffer): void => {
                 this.chunks.push(chunk.toString());
-                if (this.chunks.length > this._config.chunkSize) {
+                if (this.chunks.length >= this._config.chunkSize) {
                     this._buffer.pause();
                     this.insertChunks(fileId);
                 }
             })
             .on("error", (error: Error): void => {
+                //rollback the database changes
+                this._storage.removeFile(fileId);
                 //call error callback function, if provided.
                 if (!!this._config.onError && typeof this._config.onError === "function") {
                     this._config.onError(error);
