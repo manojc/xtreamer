@@ -53,7 +53,7 @@ export class Xstreamer {
             .on('data', (chunk: Buffer) => {
                 ++bucket;
                 this.chunks.push(chunk.toString());
-                if (bucket > 99) {
+                if (bucket > this._config.chunkSize) {
                     buffer.pause();
                     bucket= 0;
                     //keep sending the processed data through the callback function, if provided.

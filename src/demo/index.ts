@@ -22,7 +22,7 @@ function connectCallback(): void {
 }
 
 (() => {
-    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml";
+    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/nasa/nasa.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
         connectCallback: connectCallback,

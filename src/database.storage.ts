@@ -17,6 +17,46 @@ class DatabaseStorage {
             .catch((error: any) => Promise.reject(error));
     }
 
+    public addFile(url: string): Promise<string> {
+        return this._file.create({ url: url })
+            .then((response: any) => Promise.resolve(response._id.toString()))
+            .catch((error: any) => Promise.reject(error));
+    }
+
+    public removeFile(id: string): Promise<void> {
+        return this._file.findByIdAndRemove(new ObjectID(id))
+            .then(() => Promise.resolve())
+            .catch((error: any) => Promise.reject(error));
+    }
+
+    public addChunks(fileId: string, chunks: Array<string>): Promise<Array<string>> {
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+        const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
+            chunkDocs.push({
+                file_id: new ObjectID(fileId),
+                chunk: chunk
+            });
+            return chunkDocs;
+        }, []);
+        return this._chunk.insertMany(chunkDocs)
+            .then((response: any) => Promise.resolve(response.reduce((responseIds: Array<string>, doc: any) => {
+                responseIds.push(doc._id.toString());
+                return responseIds;
+            }, [])))
+            .catch((error: any) => Promise.reject(error));
+    }
+
+    public deleteChunkCollection(fileId: string): Promise<void> {
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+        return this._chunk.remove({
+            file_id: new ObjectID(fileId)
+        })
+            .then(() => Promise.resolve())
+            .catch((error: any) => Promise.reject(error));
+    }
+
+    //#region Private Methods
+
     private _validate(config: XtreamerConfig): Promise<void> {
         if (!config) {
             return Promise.reject("xtreamer config nort provided");
@@ -35,7 +75,6 @@ class DatabaseStorage {
         return connect(`${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`)
             .then(() => {
                 this._file = FileSchemaInstance(this._config.fileCollectionName);
-                this._chunk = ChunkSchemaInstance(this._config.chunkCollectionName);
                 if (this._config.connectCallback && typeof this._config.connectCallback === "function") {
                     this._config.connectCallback();
                 }
@@ -46,58 +85,7 @@ class DatabaseStorage {
             });
     }
 
-    public addFile(url: string): Promise<string> {
-        return this._file.create({ url: url })
-            .then((response: any) => Promise.resolve(response._id.toString()))
-            .catch((error: any) => Promise.reject(error));
-    }
-
-    public removeFile(id: string): Promise<void> {
-        return this._file.findByIdAndRemove(new ObjectID(id))
-            .then(() => Promise.resolve())
-            .catch((error: any) => Promise.reject(error));
-    }
-
-    public addChunk(fileId: string, chunk: string): Promise<string> {
-        return this._chunk.create({
-            file_id: new ObjectID(fileId),
-            chunk: chunk
-        })
-            .then((response: any) => Promise.resolve(response._id.toString()))
-            .catch((error: any) => Promise.reject(error));
-    }
-
-    public addChunks(fileId: string, chunks: Array<string>): Promise<Array<string>> {
-        const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
-            chunkDocs.push({
-                file_id: new ObjectID(fileId),
-                chunk: chunk
-            });
-            return chunkDocs;
-        }, []);
-        return this._chunk.insertMany(chunkDocs)
-            .then((response: any) => Promise.resolve(response.reduce((responseIds: Array<string>, doc: any) => {
-                responseIds.push(doc._id.toString());
-                return responseIds;
-            }, [])))
-            .catch((error: any) => Promise.reject(error));
-    }
-
-    public removeChunk(fileId: string): Promise<void> {
-        return this._chunk.findOneAndRemove({
-            file_id: new ObjectID(fileId)
-        })
-            .then(() => Promise.resolve())
-            .catch((error: any) => Promise.reject(error));
-    }
-
-    public removeFileChunks(fileId: string): Promise<void> {
-        return this._chunk.remove({
-            file_id: new ObjectID(fileId)
-        })
-            .then(() => Promise.resolve())
-            .catch((error: any) => Promise.reject(error));
-    }
+    //#endregion
 }
 
 export { DatabaseStorage };
