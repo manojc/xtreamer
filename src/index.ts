@@ -8,6 +8,7 @@ export class Xstreamer {
     private _config: XtreamerConfig;
     private chunks: Array<string> = [];
     private _buffer: Request;
+    private fileId: string;
 
     public constructor() {
         this._storage = new DatabaseStorage();
@@ -21,7 +22,10 @@ export class Xstreamer {
             .then(() => {
                 this._config = config;
                 return this._storage.addFile(fileUrl)
-                    .then((_id: string) => this._stream(fileUrl, _id))
+                    .then((_id: string) => {
+                        this.fileId = _id;
+                        this._initStream(fileUrl);
+                    })
                     .catch((error: any) => Promise.reject(error));
             })
             .catch((error: any) => {
@@ -29,34 +33,42 @@ export class Xstreamer {
             });
     }
 
-    private _stream(url: string, fileId: string): void {
+    private _initStream(url: string): void {
         this._buffer = get(url)
-            .on('complete', (): void => {
-                //call success callback function, if provided.
-                if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
-                    this._config.onSuccess(fileId);
-                }
-            })
-            .on('data', (chunk: Buffer): void => {
-                this.chunks.push(chunk.toString());
-                if (this.chunks.length >= this._config.chunkSize) {
-                    this._buffer.pause();
-                    this.insertChunks(fileId);
-                }
-            })
-            .on("error", (error: Error): void => {
-                //rollback the database changes
-                this._storage.removeFile(fileId);
-                //call error callback function, if provided.
-                if (!!this._config.onError && typeof this._config.onError === "function") {
-                    this._config.onError(error);
-                }
-            });
+            .on('complete', this.onStreamComplete.bind(this))
+            .on('data', this.onStreamData.bind(this))
+            .on("error", this.onStreamError.bind(this));
     }
 
-    private insertChunks(fileId: string): void {
+    private onStreamData(chunk: Buffer): void {
+        this.chunks.push(chunk.toString());
+        if (this.chunks.length >= this._config.chunkSize) {
+            this._buffer.pause();
+            this.insertChunks();
+        }
+    }
+
+    private onStreamComplete(): void {
+        //update file collection status
+        this._storage.updateFile(this.fileId);
+        //call success callback function, if provided.
+        if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
+            this._config.onSuccess(this.fileId);
+        }        
+    }
+
+    private onStreamError(error: Error): void {
+        //rollback the database changes
+        this._storage.removeFile(this.fileId);
+        //call error callback function, if provided.
+        if (!!this._config.onError && typeof this._config.onError === "function") {
+            this._config.onError(error);
+        }
+    }
+
+    private insertChunks(): void {
         //keep sending the processed data through the callback function, if provided.
-        this._storage.addChunks(fileId, this.chunks)
+        this._storage.addChunks(this.fileId, this.chunks)
             .then((chunkIds: Array<string>) => {
                 if (!!this._config.onChunkProcesed && typeof this._config.onChunkProcesed === "function") {
                     this._config.onChunkProcesed(chunkIds.join(', '));

@@ -30,6 +30,14 @@ class DatabaseStorage {
             });
     }
 
+    public updateFile(id: string): Promise<string> {
+        return this._file.findOneAndUpdate(new ObjectID(id), {is_processed : true})
+            .then((response: any) => Promise.resolve(response._id.toString()))
+            .catch((error: any) => {
+                return Promise.reject(error)
+            });
+    }
+
     public removeFile(id: string): Promise<void> {
         return this.dropChunkCollection(id)
             .then(() => {
