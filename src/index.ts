@@ -35,20 +35,12 @@ export class Xstreamer {
 
     private _initStream(url: string): void {
         this._buffer = get(url)
-            .on('complete', this.onStreamComplete.bind(this))
-            .on('data', this.onStreamData.bind(this))
-            .on("error", this.onStreamError.bind(this));
+            .on('complete', this._onStreamComplete.bind(this))
+            .on('data', this._onStreamData.bind(this))
+            .on("error", this._onStreamError.bind(this));
     }
 
-    private onStreamData(chunk: Buffer): void {
-        this.chunks.push(chunk.toString());
-        if (this.chunks.length >= this._config.chunkSize) {
-            this._buffer.pause();
-            this.insertChunks();
-        }
-    }
-
-    private onStreamComplete(): void {
+    private _onStreamComplete(): void {
         //update file collection status
         this._storage.updateFile(this.fileId);
         //call success callback function, if provided.
@@ -57,7 +49,15 @@ export class Xstreamer {
         }        
     }
 
-    private onStreamError(error: Error): void {
+    private _onStreamData(chunk: Buffer): void {
+        this.chunks.push(chunk.toString());
+        if (this.chunks.length >= this._config.chunkSize) {
+            this._buffer.pause();
+            this._insertChunks();
+        }
+    }
+
+    private _onStreamError(error: Error): void {
         //rollback the database changes
         this._storage.removeFile(this.fileId);
         //call error callback function, if provided.
@@ -66,7 +66,7 @@ export class Xstreamer {
         }
     }
 
-    private insertChunks(): void {
+    private _insertChunks(): void {
         //keep sending the processed data through the callback function, if provided.
         this._storage.addChunks(this.fileId, this.chunks)
             .then((chunkIds: Array<string>) => {
