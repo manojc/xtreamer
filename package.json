@@ -33,6 +33,7 @@
     "devDependencies": {
         "@types/mongoose": "^5.0.16",
         "@types/node": "^10.3.0",
+        "@types/request": "^2.47.1",
         "pm2": "^2.10.4",
         "typescript": "^2.9.2"
     }

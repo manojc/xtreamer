@@ -18,7 +18,7 @@ const XtreamerChunkSchema = new Schema({
     }
 }, { timestamps: true });
 
-export const ChunkSchemaInstance = (collectionName: string = "xstreamer.chunks") : Model<Document> => {
-    collectionName = collectionName && collectionName.trim() || "xstreamer.chunks";
+export const ChunkSchemaInstance = (collectionName: string = "xtreamer.chunks") : Model<Document> => {
+    collectionName = collectionName && collectionName.trim() || "xtreamer.chunks";
     return model("XtreamerChunk", XtreamerChunkSchema, collectionName);
 }

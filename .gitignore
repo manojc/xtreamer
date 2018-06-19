@@ -64,4 +64,4 @@ typings/
 dist/
 
 # data directories
-files/
+data/

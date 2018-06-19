@@ -9,8 +9,8 @@
             "request": "launch",
             "name": "Xstremer Server",
             "sourceMaps": true,
-            "program": "${workspaceFolder}/dist/server.js",
-            "preLaunchTask": "npm: tsc",
+            "program": "${workspaceFolder}/dist/demo/index.js",
+            // "preLaunchTask": "npm: tsc",
             "skipFiles": [
                 "node_modules/**/*.js"
             ],
