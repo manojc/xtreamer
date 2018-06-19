@@ -1,4 +1,4 @@
-import { get } from "request";
+import { get, Request } from "request";
 import { DatabaseStorage } from "./database.storage";
 import { XtreamerConfig } from "./streamer.config";
 
@@ -7,6 +7,7 @@ export class Xstreamer {
     private _storage: DatabaseStorage;
     private _config: XtreamerConfig;
     private chunks: Array<string> = [];
+    private _buffer: Request;
 
     public constructor() {
         this._storage = new DatabaseStorage();
@@ -29,8 +30,7 @@ export class Xstreamer {
     }
 
     private _stream(url: string, fileId: string): void {
-        let bucket: number = 0;
-        let buffer: any = get(url)
+        this._buffer = get(url)
             .on('complete', (): void => {
                 //call success callback function, if provided.
                 if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
@@ -38,12 +38,10 @@ export class Xstreamer {
                 }
             })
             .on('data', (chunk: Buffer): void => {
-                ++bucket;
                 this.chunks.push(chunk.toString());
-                if (bucket > this._config.chunkSize) {
-                    buffer.pause();
-                    bucket = 0;
-                    this.insertChunks(fileId, buffer);
+                if (this.chunks.length > this._config.chunkSize) {
+                    this._buffer.pause();
+                    this.insertChunks(fileId);
                 }
             })
             .on("error", (error: Error): void => {
@@ -54,7 +52,7 @@ export class Xstreamer {
             });
     }
 
-    private insertChunks(fileId: string, buffer: any): void {
+    private insertChunks(fileId: string): void {
         //keep sending the processed data through the callback function, if provided.
         this._storage.addChunks(fileId, this.chunks)
             .then((chunkIds: Array<string>) => {
@@ -62,7 +60,7 @@ export class Xstreamer {
                     this._config.onChunkProcesed(chunkIds.join(', '));
                 }
                 this.chunks = [];
-                buffer.resume();
+                this._buffer.resume();
             })
             .catch((error: any) => {
                 //call error callback function, if provided.

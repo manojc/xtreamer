@@ -1,4 +1,5 @@
 import { Schema, model, Model, Document } from "mongoose";
+import { CHUNK_COLLECTION_PREFIX } from "./streamer.config";
 
 const XtreamerChunkSchema = new Schema({
     file_id: {
@@ -18,7 +19,13 @@ const XtreamerChunkSchema = new Schema({
     }
 }, { timestamps: true });
 
-export const ChunkSchemaInstance = (fileId: string, collectionName: string = "xtreamer.chunks") : Model<Document> => {
-    collectionName = collectionName && collectionName.trim() || "xtreamer.chunks";
+export const ChunkSchemaInstance = (fileId: string, collectionName: string = CHUNK_COLLECTION_PREFIX) : Model<Document> => {
+
+    if (!fileId || typeof fileId !== "string" || !fileId.trim()) {
+        throw "file id si required to create a xtreamer chunk collection instance!";
+        return null;
+    }
+
+    collectionName = collectionName && collectionName.trim() || CHUNK_COLLECTION_PREFIX;
     return model("XtreamerChunk", XtreamerChunkSchema, `${collectionName}.${fileId}`);
 }

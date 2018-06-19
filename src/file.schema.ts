@@ -1,4 +1,5 @@
 import { Schema, model, Model, Document } from "mongoose";
+import { FILE_COLLECTION_NAME } from "./streamer.config";
 
 const XtreamerFileSchema = new Schema({
     url: {
@@ -17,7 +18,7 @@ const XtreamerFileSchema = new Schema({
     }
 }, { timestamps: true });
 
-export const FileSchemaInstance = (collectionName: string = "xtreamer.files"): Model<Document> => {
-    collectionName = collectionName && collectionName.trim() || "xtreamer.files";
+export const FileSchemaInstance = (collectionName: string = FILE_COLLECTION_NAME): Model<Document> => {
+    collectionName = collectionName && collectionName.trim() || FILE_COLLECTION_NAME;
     return model("XtreamerFile", XtreamerFileSchema, collectionName);
 }

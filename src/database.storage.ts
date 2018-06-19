@@ -2,7 +2,7 @@ import { connect } from "mongoose";
 import { Model, Document } from "mongoose";
 import { FileSchemaInstance } from "./file.schema";
 import { ChunkSchemaInstance } from "./chunk.schema";
-import { XtreamerConfig } from "./streamer.config";
+import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX } from "./streamer.config";
 import { ObjectID } from "bson";
 
 class DatabaseStorage {
@@ -67,9 +67,9 @@ class DatabaseStorage {
         if (!config.dbUrl || !config.dbUrl.trim()) {
             return Promise.reject("database URL not provided");
         }
-        config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : "xtreamer-db";
-        config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : "xtreamer.files";
-        config.chunkCollectionName = !!config.chunkCollectionName && !!config.chunkCollectionName.trim() ? config.chunkCollectionName.trim() : "xtreamer.chunks";
+        config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : DB_NAME;
+        config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : FILE_COLLECTION_NAME;
+        config.chunkCollectionName = !!config.chunkCollectionName && !!config.chunkCollectionName.trim() ? config.chunkCollectionName.trim() : CHUNK_COLLECTION_PREFIX;
         this._config = config;
         return Promise.resolve();
     }
