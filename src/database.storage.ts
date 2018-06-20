@@ -101,8 +101,8 @@ class DatabaseStorage {
         return connect(`${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`)
             .then(() => {
                 this._file = FileSchemaInstance(this._config.fileCollectionName);
-                if (this._config.connectCallback && typeof this._config.connectCallback === "function") {
-                    this._config.connectCallback();
+                if (this._config.onDatabaseConnection && typeof this._config.onDatabaseConnection === "function") {
+                    this._config.onDatabaseConnection();
                 }
                 return Promise.resolve();
             })

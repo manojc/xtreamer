@@ -1,86 +1,34 @@
-import { get, Request } from "request";
-import { DatabaseStorage } from "./database.storage";
+import { Streamer } from "./streamer";
 import { XtreamerConfig } from "./streamer.config";
+import { Parser } from "./parser";
 
 export class Xstreamer {
 
-    private _storage: DatabaseStorage;
     private _config: XtreamerConfig;
-    private _chunks: Array<string> = [];
-    private _buffer: Request;
-    private _fileId: string;
+    private _streamer: Streamer;
+    private _parser: Parser;
 
     public constructor() {
-        this._storage = new DatabaseStorage();
+        this._streamer = this._streamer || new Streamer(this._streamingSuccessCallback);
+        this._parser = this._parser || new Parser(this._parsingSuccessCallback);
     }
 
     public stream(fileUrl: string, config: XtreamerConfig): Promise<void> {
-        if (!fileUrl || typeof fileUrl !== "string" || !fileUrl.trim()) {
-            return Promise.reject("invalid file URL!");
-        }
-        return this._storage.init(config)
+        return this._streamer.stream(fileUrl, config)
             .then(() => {
-                this._config = config;
-                return this._storage.addFile(fileUrl)
-                    .then((_id: string) => {
-                        this._fileId = _id;
-                        this._initStream(fileUrl);
-                    })
-                    .catch((error: any) => Promise.reject(error));
+                this._config = config
+                return Promise.resolve();
             })
             .catch((error: any) => {
                 return Promise.reject(error);
             });
     }
 
-    private _initStream(url: string): void {
-        this._buffer = get(url)
-            .on('complete', this._onStreamComplete.bind(this))
-            .on('data', this._onStreamData.bind(this))
-            .on("error", this._onStreamError.bind(this));
+    private _streamingSuccessCallback(fileId: string): void {
+        this._parser.init(fileId, this._config);
     }
 
-    private _onStreamComplete(): void {
-        //update file collection status
-        this._storage.updateFile(this._fileId);
-        //call success callback function, if provided.
-        if (!!this._config.onSuccess && typeof this._config.onSuccess === "function") {
-            this._config.onSuccess(this._fileId);
-        }        
-    }
-
-    private _onStreamData(chunk: Buffer): void {
-        this._chunks.push(chunk.toString());
-        if (this._chunks.length >= this._config.chunkSize) {
-            this._buffer.pause();
-            this._insertChunks();
-        }
-    }
-
-    private _onStreamError(error: Error): void {
-        //rollback the database changes
-        this._storage.removeFile(this._fileId);
-        //call error callback function, if provided.
-        if (!!this._config.onError && typeof this._config.onError === "function") {
-            this._config.onError(error);
-        }
-    }
-
-    private _insertChunks(): void {
-        //keep sending the processed data through the callback function, if provided.
-        this._storage.addChunks(this._fileId, this._chunks)
-            .then((chunkIds: Array<string>) => {
-                if (!!this._config.onChunkProcesed && typeof this._config.onChunkProcesed === "function") {
-                    this._config.onChunkProcesed(chunkIds.join(', '));
-                }
-                this._chunks = [];
-                this._buffer.resume();
-            })
-            .catch((error: any) => {
-                //call error callback function, if provided.
-                if (!!this._config.onError && typeof this._config.onError === "function") {
-                    this._config.onError(error);
-                }
-            });
+    private _parsingSuccessCallback(fileId: string): void {
+        this._parser.init(fileId, this._config);
     }
 }

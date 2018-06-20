@@ -3,21 +3,29 @@ import { XtreamerConfig } from "../streamer.config";
 
 let chunkCount = 0;
 
-function onChunkProcesed(chunkId: string): void {
-    let  currentCount: number = chunkId.split(',').length;
+function onChunkProcesed(chunkIds: Array<string>): void {
+    let  currentCount: number = chunkIds.length;
     chunkCount += currentCount;
     console.log(`total chunks processed ${chunkCount}`);
 }
 
-function onSuccess(fileId: string): void {
+function onStreamingSuccess(fileId: string): void {
     console.log(`file streaming finished ${fileId}`);
 }
 
-function onError(error: any): void {
+function onStreamingError(error: any): void {
     console.error(`error occurred!!`, error);
 }
 
-function connectCallback(): void {
+function onParsingSuccess(): void {
+    console.log(`file parsing finished!`);
+}
+
+function onParsingError(error: any): void {
+    console.error(`error occurred!!`, error);
+}
+
+function onDatabaseConnection(): void {
     console.log("database connected!!!");
 }
 
@@ -25,11 +33,14 @@ function connectCallback(): void {
     const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/nasa/nasa.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
-        connectCallback: connectCallback,
+        onDatabaseConnection: onDatabaseConnection,
         onChunkProcesed: onChunkProcesed,
-        onError: onError,
-        onSuccess: onSuccess
+        onStreamingError: onStreamingError,
+        onStreamingSuccess: onStreamingSuccess,
+        onParsingSuccess: onParsingSuccess,
+        onParsingError: onParsingError
     }
     let streamer: Xstreamer = new Xstreamer();
-    streamer.stream(url, config);
+    streamer.stream(url, config)
+        .catch((error: any) => console.error(error));
 })();
