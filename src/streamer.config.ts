@@ -1,6 +1,6 @@
-const DB_NAME: string = "xtreamer-db";
-const FILE_COLLECTION_NAME: string = "xtreamer.files";
-const CHUNK_COLLECTION_PREFIX: string = "xtreamer.chunks";
+const DB_NAME: string = "xtreamer_db";
+const FILE_COLLECTION_NAME: string = "xtreamer_files";
+const CHUNK_COLLECTION_PREFIX: string = "xtreamer_chunks";
 const BUCKET_SIZE: number = 150;
 
 class XtreamerConfig {

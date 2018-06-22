@@ -30,7 +30,7 @@ function onDatabaseConnection(): void {
 }
 
 (() => {
-    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/nasa/nasa.xml";
+    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/tpc-h/orders.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
         onDatabaseConnection: onDatabaseConnection,

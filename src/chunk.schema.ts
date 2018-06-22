@@ -27,5 +27,5 @@ export const ChunkSchemaInstance = (fileId: string, collectionName: string = CHU
     }
 
     collectionName = collectionName && collectionName.trim() ? collectionName : CHUNK_COLLECTION_PREFIX;
-    return model("XtreamerChunk", XtreamerChunkSchema, `${collectionName}.${fileId}`);
+    return model("XtreamerChunk", XtreamerChunkSchema, `${collectionName}_${fileId}`);
 }

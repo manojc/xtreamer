@@ -9,8 +9,8 @@ export class Xstreamer {
     private _parser: Parser;
 
     public constructor() {
-        this._streamer = this._streamer || new Streamer(this._streamingSuccessCallback);
-        this._parser = this._parser || new Parser(this._parsingSuccessCallback);
+        this._streamer = this._streamer || new Streamer(this._streamingSuccessCallback.bind(this));
+        this._parser = this._parser || new Parser(this._parsingSuccessCallback.bind(this));
     }
 
     public stream(fileUrl: string, config: XtreamerConfig): Promise<void> {
@@ -29,6 +29,5 @@ export class Xstreamer {
     }
 
     private _parsingSuccessCallback(fileId: string): void {
-        this._parser.init(fileId, this._config);
     }
 }

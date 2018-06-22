@@ -9,7 +9,8 @@ class Parser {
     private _fileId: string;
 
     public constructor(parsingSuccessCallback: (fileId: string) => void) {
-        this._parsingSuccessCallback = parsingSuccessCallback;
+        this._parsingSuccessCallback = parsingSuccessCallback;;
+        this._storage = new DatabaseStorage();
     }
 
     public init(fileId: string, config: XtreamerConfig): Promise<void> {
@@ -17,10 +18,21 @@ class Parser {
             .then(() => {
                 this._fileId = fileId
                 this._config = config;
+                this._processChunks();
                 return Promise.resolve();
             })
             .catch((error: any) => {
                 return Promise.reject(error);
+            });
+    }
+
+    private _processChunks(): void {
+        this._storage.getChunks(this._fileId, 1, 0)
+            .then((chunks: Array<string>) => {
+                console.log(chunks);
+            })
+            .catch((error: any) => {
+                console.error(error);
             });
     }
 }

@@ -79,6 +79,31 @@ class DatabaseStorage {
             });
     }
 
+    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<Array<string>> {
+        try {
+            this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+            return this._chunk
+                .aggregate([
+                    { $skip: isNaN(skip) ? 0 : skip },
+                    { $limit: isNaN(limit) ? 10 : limit },
+                    {
+                        $project: {
+                            _id: 0,
+                            chunk: 1
+                        }
+                    }
+                ])
+                .then((chunks: Array<string>) => {
+                    return Promise.resolve(chunks);
+                })
+                .catch((error: any) => {
+                    return Promise.reject(error);
+                });
+        } catch (error) {
+            return Promise.reject(error)
+        }
+    }
+
     public dropChunkCollection(fileId: string): Promise<void> {
         this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
         return this._chunk.collection.drop()
