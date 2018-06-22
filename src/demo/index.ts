@@ -4,13 +4,13 @@ import { XtreamerConfig } from "../streamer.config";
 let chunkCount = 0;
 
 function onChunkProcesed(chunkIds: Array<string>): void {
-    let  currentCount: number = chunkIds.length;
+    let currentCount: number = chunkIds.length;
     chunkCount += currentCount;
     console.log(`total chunks processed ${chunkCount}`);
 }
 
 function onStreamingSuccess(fileId: string): void {
-    console.log(`file streaming finished ${fileId}`);
+    console.log(`file streaming finished - ${fileId}`);
 }
 
 function onStreamingError(error: any): void {
@@ -35,12 +35,13 @@ function onDatabaseConnection(): void {
         dbUrl: "mongodb://localhost",
         onDatabaseConnection: onDatabaseConnection,
         onChunkProcesed: onChunkProcesed,
-        onStreamingError: onStreamingError,
         onStreamingSuccess: onStreamingSuccess,
+        onStreamingError: onStreamingError,
         onParsingSuccess: onParsingSuccess,
         onParsingError: onParsingError
-    }
-    let streamer: Xstreamer = new Xstreamer();
-    streamer.stream(url, config)
+    };
+    new Xstreamer().
+        stream(url, config)
+        .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

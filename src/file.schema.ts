@@ -19,6 +19,6 @@ const XtreamerFileSchema = new Schema({
 }, { timestamps: true });
 
 export const FileSchemaInstance = (collectionName: string = FILE_COLLECTION_NAME): Model<Document> => {
-    collectionName = collectionName && collectionName.trim() || FILE_COLLECTION_NAME;
+    collectionName = collectionName && collectionName.trim() ? collectionName : FILE_COLLECTION_NAME;
     return model("XtreamerFile", XtreamerFileSchema, collectionName);
 }

@@ -22,10 +22,10 @@ const XtreamerChunkSchema = new Schema({
 export const ChunkSchemaInstance = (fileId: string, collectionName: string = CHUNK_COLLECTION_PREFIX) : Model<Document> => {
 
     if (!fileId || typeof fileId !== "string" || !fileId.trim()) {
-        throw "file id si required to create a xtreamer chunk collection instance!";
+        throw "file id is required to create an instance of xtreamer chunk collection!";
         return null;
     }
 
-    collectionName = collectionName && collectionName.trim() || CHUNK_COLLECTION_PREFIX;
+    collectionName = collectionName && collectionName.trim() ? collectionName : CHUNK_COLLECTION_PREFIX;
     return model("XtreamerChunk", XtreamerChunkSchema, `${collectionName}.${fileId}`);
 }

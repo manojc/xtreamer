@@ -28,7 +28,9 @@ class Streamer {
                         this._fileId = _id;
                         this._initStream(fileUrl);
                     })
-                    .catch((error: any) => Promise.reject(error));
+                    .catch((error: any) => {
+                        return Promise.reject(error);
+                    });
             })
             .catch((error: any) => {
                 return Promise.reject(error);

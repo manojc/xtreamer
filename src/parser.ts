@@ -21,7 +21,7 @@ class Parser {
             })
             .catch((error: any) => {
                 return Promise.reject(error);
-            })
+            });
     }
 }
 

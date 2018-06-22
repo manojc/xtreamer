@@ -13,7 +13,7 @@ class DatabaseStorage {
 
     public connect(config: XtreamerConfig): Promise<void> {
         if (!!this._config) {
-            Promise.resolve();
+            return Promise.resolve();
         }
         return this._validate(config)
             .then(() => { return this._connect() })
@@ -24,15 +24,19 @@ class DatabaseStorage {
 
     public addFile(url: string): Promise<string> {
         return this._file.create({ url: url })
-            .then((response: any) => Promise.resolve(response._id.toString()))
+            .then((response: any) => {
+                return Promise.resolve(response._id.toString());
+            })
             .catch((error: any) => {
                 return Promise.reject(error)
             });
     }
 
     public updateFile(id: string): Promise<string> {
-        return this._file.findOneAndUpdate(new ObjectID(id), {is_processed : true})
-            .then((response: any) => Promise.resolve(response._id.toString()))
+        return this._file.findOneAndUpdate(new ObjectID(id), { is_processed: true })
+            .then((response: any) => {
+                return Promise.resolve(response._id.toString());
+            })
             .catch((error: any) => {
                 return Promise.reject(error)
             });
@@ -42,7 +46,9 @@ class DatabaseStorage {
         return this.dropChunkCollection(id)
             .then(() => {
                 return this._file.findByIdAndRemove(new ObjectID(id))
-                    .then(() => Promise.resolve())
+                    .then(() => {
+                        return Promise.resolve();
+                    })
                     .catch((error: any) => {
                         return Promise.reject(error)
                     });
@@ -62,10 +68,12 @@ class DatabaseStorage {
             return chunkDocs;
         }, []);
         return this._chunk.insertMany(chunkDocs)
-            .then((response: any) => Promise.resolve(response.reduce((responseIds: Array<string>, doc: any) => {
-                responseIds.push(doc._id.toString());
-                return responseIds;
-            }, [])))
+            .then((response: any) => {
+                return Promise.resolve(response.reduce((responseIds: Array<string>, doc: any) => {
+                    responseIds.push(doc._id.toString());
+                    return responseIds;
+                }, []))
+            })
             .catch((error: any) => {
                 return Promise.reject(error)
             });
@@ -74,7 +82,9 @@ class DatabaseStorage {
     public dropChunkCollection(fileId: string): Promise<void> {
         this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
         return this._chunk.collection.drop()
-            .then(() => Promise.resolve())
+            .then(() => {
+                return Promise.resolve();
+            })
             .catch((error: any) => {
                 return Promise.reject(error)
             });
