@@ -11,7 +11,7 @@ class DatabaseStorage {
     private _chunk: Model<Document>;
     private _config: XtreamerConfig;
 
-    public init(config: XtreamerConfig): Promise<void> {
+    public connect(config: XtreamerConfig): Promise<void> {
         if (!!this._config) {
             Promise.resolve();
         }

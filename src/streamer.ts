@@ -20,7 +20,7 @@ class Streamer {
         if (!fileUrl || typeof fileUrl !== "string" || !fileUrl.trim()) {
             return Promise.reject("invalid file URL!");
         }
-        return this._storage.init(config)
+        return this._storage.connect(config)
             .then(() => {
                 this._config = config;
                 return this._storage.addFile(fileUrl)
