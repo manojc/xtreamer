@@ -1,5 +1,5 @@
 import { Schema, model, Model, Document } from "mongoose";
-import { FILE_COLLECTION_NAME } from "./streamer.config";
+import { FILE_COLLECTION_NAME } from "../streamer/streamer.config";
 
 const XtreamerFileSchema = new Schema({
     url: {

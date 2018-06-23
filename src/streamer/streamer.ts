@@ -1,19 +1,16 @@
 import { get, Request } from "request";
-import { DatabaseStorage } from "./database.storage";
 import { XtreamerConfig } from "./streamer.config";
+import { Base } from "../storage/base.model";
 
-class Streamer {
+class Streamer extends Base {
 
-    private _storage: DatabaseStorage;
-    private _config: XtreamerConfig;
     private _chunks: Array<string> = [];
     private _buffer: Request;
-    private _fileId: string;
     private _streamingSuccessCallback: (fileId: string) => void;
 
     public constructor(streamingSuccessCallback: (fileId: string) => void) {
+        super();
         this._streamingSuccessCallback = streamingSuccessCallback;
-        this._storage = new DatabaseStorage();
     }
 
     public stream(fileUrl: string, config: XtreamerConfig): Promise<void> {

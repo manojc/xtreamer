@@ -1,5 +1,5 @@
 import { Xstreamer } from "../index";
-import { XtreamerConfig } from "../streamer.config";
+import { XtreamerConfig } from "../streamer/streamer.config";
 
 let chunkCount = 0;
 

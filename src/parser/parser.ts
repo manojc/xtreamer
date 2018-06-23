@@ -1,16 +1,13 @@
-import { XtreamerConfig } from "./streamer.config";
-import { DatabaseStorage } from "./database.storage";
+import { XtreamerConfig } from "../streamer/streamer.config";
+import { Base } from "../storage/base.model";
 
-class Parser {
+class Parser extends Base {
 
-    private _config: XtreamerConfig;
-    private _storage: DatabaseStorage;
     private _parsingSuccessCallback: (fileId: string) => void;
-    private _fileId: string;
 
     public constructor(parsingSuccessCallback: (fileId: string) => void) {
+        super();
         this._parsingSuccessCallback = parsingSuccessCallback;;
-        this._storage = new DatabaseStorage();
     }
 
     public init(fileId: string, config: XtreamerConfig): Promise<void> {

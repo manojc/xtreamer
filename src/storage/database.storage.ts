@@ -2,7 +2,7 @@ import { connect } from "mongoose";
 import { Model, Document } from "mongoose";
 import { FileSchemaInstance } from "./file.schema";
 import { ChunkSchemaInstance } from "./chunk.schema";
-import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE } from "./streamer.config";
+import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE } from "../streamer/streamer.config";
 import { ObjectID } from "bson";
 
 class DatabaseStorage {

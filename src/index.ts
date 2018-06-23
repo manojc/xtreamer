@@ -1,6 +1,6 @@
-import { Streamer } from "./streamer";
-import { XtreamerConfig } from "./streamer.config";
-import { Parser } from "./parser";
+import { Streamer } from "./streamer/streamer";
+import { XtreamerConfig } from "./streamer/streamer.config";
+import { Parser } from "./parser/parser";
 
 export class Xstreamer {
 
