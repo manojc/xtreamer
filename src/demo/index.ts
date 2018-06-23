@@ -1,4 +1,4 @@
-import { Xstreamer } from "../index";
+import { Xtreamer } from "../index";
 import { XtreamerConfig } from "../streamer/streamer.config";
 
 let chunkCount = 0;
@@ -45,7 +45,7 @@ function onDatabaseConnectionError(error: any) {
         onParsingSuccess: onParsingSuccess,
         onParsingError: onParsingError
     };
-    new Xstreamer().
+    new Xtreamer().
         init(url, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));

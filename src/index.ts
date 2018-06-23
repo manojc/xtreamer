@@ -3,7 +3,7 @@ import { XtreamerConfig } from "./streamer/streamer.config";
 import { Parser } from "./parser/parser";
 import { Base } from "./storage/base.model";
 
-export class Xstreamer extends Base {
+export class Xtreamer extends Base {
 
     private _streamer: Streamer;
     private _parser: Parser;
