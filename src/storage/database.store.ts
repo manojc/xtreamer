@@ -130,7 +130,7 @@ class DatabaseStore {
         config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : DB_NAME;
         config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : FILE_COLLECTION_NAME;
         config.chunkCollectionName = !!config.chunkCollectionName && !!config.chunkCollectionName.trim() ? config.chunkCollectionName.trim() : CHUNK_COLLECTION_PREFIX;
-        config.chunkSize = isNaN(config.chunkSize) && config.chunkSize > 0 ? config.chunkSize : BUCKET_SIZE;
+        config.bucketSize = isNaN(config.bucketSize) && config.bucketSize > 0 ? config.bucketSize : BUCKET_SIZE;
         this._config = config;
         return Promise.resolve();
     }
@@ -139,12 +139,15 @@ class DatabaseStore {
         return connect(`${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`)
             .then(() => {
                 this._file = FileSchemaInstance(this._config.fileCollectionName);
-                if (this._config.onDatabaseConnection && typeof this._config.onDatabaseConnection === "function") {
-                    this._config.onDatabaseConnection();
+                if (this._config.onDatabaseConnectionSuccess && typeof this._config.onDatabaseConnectionSuccess === "function") {
+                    this._config.onDatabaseConnectionSuccess();
                 }
                 return Promise.resolve();
             })
             .catch((error: any) => {
+                if (this._config.onDatabaseConnectionError && typeof this._config.onDatabaseConnectionError === "function") {
+                    this._config.onDatabaseConnectionError(error);
+                }
                 return Promise.reject(`could not connect to ${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`);
             });
     }

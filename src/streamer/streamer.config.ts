@@ -8,13 +8,14 @@ class XtreamerConfig {
     fileCollectionName?: string = FILE_COLLECTION_NAME;
     chunkCollectionName?: string = CHUNK_COLLECTION_PREFIX;
     dbName?: string = DB_NAME;
-    chunkSize?: number = BUCKET_SIZE;
-    onChunkProcesed?: (chunkIds: Array<string>) => void;
+    bucketSize?: number = BUCKET_SIZE;
+    onChunksProcesed?: (chunkIds: Array<string>) => void;
     onStreamingSuccess?: (fileId: string) => void;
     onStreamingError?: (error: any) => void;
     onParsingSuccess?: () => void;
     onParsingError?: (error: any) => void;
-    onDatabaseConnection?: () => void;
+    onDatabaseConnectionSuccess?: () => void;
+    onDatabaseConnectionError?: (error: any) => void;
 }
 
 export { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE }

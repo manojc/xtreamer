@@ -38,7 +38,7 @@ class Streamer extends Base {
 
     private _onStreamData(chunk: Buffer): void {
         this._chunks.push(chunk.toString());
-        if (this._chunks.length >= this._store.config.chunkSize) {
+        if (this._chunks.length >= this._store.config.bucketSize) {
             this._buffer.pause();
             this._insertChunks();
         }
@@ -59,8 +59,8 @@ class Streamer extends Base {
         //keep sending the processed data through the callback function, if provided.
         this._store.addChunks(this._fileId, this._chunks)
             .then((chunkIds: Array<string>) => {
-                if (!!this._store.config.onChunkProcesed && typeof this._store.config.onChunkProcesed === "function") {
-                    this._store.config.onChunkProcesed(chunkIds);
+                if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
+                    this._store.config.onChunksProcesed(chunkIds);
                 }
                 this._chunks = [];
                 this._buffer.resume();

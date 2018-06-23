@@ -25,16 +25,21 @@ function onParsingError(error: any): void {
     console.error(`error occurred!!`, error);
 }
 
-function onDatabaseConnection(): void {
+function onDatabaseConnectionSuccess(): void {
     console.log("database connected!!!");
+}
+
+function onDatabaseConnectionError(error: any) {
+    console.error("database connection error!!", error);
 }
 
 (() => {
     const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/tpc-h/orders.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
-        onDatabaseConnection: onDatabaseConnection,
-        onChunkProcesed: onChunkProcesed,
+        onDatabaseConnectionSuccess: onDatabaseConnectionSuccess,
+        onDatabaseConnectionError: onDatabaseConnectionError,
+        onChunksProcesed: onChunkProcesed,
         onStreamingSuccess: onStreamingSuccess,
         onStreamingError: onStreamingError,
         onParsingSuccess: onParsingSuccess,
