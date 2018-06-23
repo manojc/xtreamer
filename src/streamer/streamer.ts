@@ -1,41 +1,23 @@
 import { get, Request } from "request";
-import { XtreamerConfig } from "./streamer.config";
 import { Base } from "../storage/base.model";
+import { DatabaseStore } from "../storage/database.store";
 
 class Streamer extends Base {
 
     private _chunks: Array<string> = [];
     private _buffer: Request;
-    private _streamingSuccessCallback: (fileId: string) => void;
+    private _streamingSuccessCallback: () => void;
 
-    public constructor(streamingSuccessCallback: (fileId: string) => void) {
+    public constructor(streamingSuccessCallback: () => void) {
         super();
         this._streamingSuccessCallback = streamingSuccessCallback;
     }
 
-    public stream(fileUrl: string, config: XtreamerConfig): Promise<void> {
-        if (!fileUrl || typeof fileUrl !== "string" || !fileUrl.trim()) {
-            return Promise.reject("invalid file URL!");
-        }
-        return this._storage.connect(config)
-            .then(() => {
-                this._config = config;
-                return this._storage.addFile(fileUrl)
-                    .then((_id: string) => {
-                        this._fileId = _id;
-                        this._initStream(fileUrl);
-                    })
-                    .catch((error: any) => {
-                        return Promise.reject(error);
-                    });
-            })
-            .catch((error: any) => {
-                return Promise.reject(error);
-            });
-    }
-
-    private _initStream(url: string): void {
-        this._buffer = get(url)
+    public stream(fileUrl: string, fileId: string, store: DatabaseStore): void {
+        this._store = store;
+        this._fileId = fileId;
+        this._fileUrl = fileUrl;
+        this._buffer = get(this._fileUrl)
             .on('complete', this._onStreamComplete.bind(this))
             .on('data', this._onStreamData.bind(this))
             .on("error", this._onStreamError.bind(this));
@@ -43,20 +25,20 @@ class Streamer extends Base {
 
     private _onStreamComplete(): void {
         //update file collection status
-        this._storage.updateFile(this._fileId);
+        this._store.updateFile(this._fileId);
         //call success callback function, if provided.
-        if (!!this._config.onStreamingSuccess && typeof this._config.onStreamingSuccess === "function") {
-            this._config.onStreamingSuccess(this._fileId);
+        if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
+            this._store.config.onStreamingSuccess(this._fileId);
         }
         //callback for stream parser
         if (!!this._streamingSuccessCallback && typeof this._streamingSuccessCallback === "function") {
-            this._streamingSuccessCallback(this._fileId);
+            this._streamingSuccessCallback();
         }
     }
 
     private _onStreamData(chunk: Buffer): void {
         this._chunks.push(chunk.toString());
-        if (this._chunks.length >= this._config.chunkSize) {
+        if (this._chunks.length >= this._store.config.chunkSize) {
             this._buffer.pause();
             this._insertChunks();
         }
@@ -66,19 +48,19 @@ class Streamer extends Base {
         //destroy the buffer and stop processing
         this._buffer.destroy();
         //rollback the database changes
-        this._storage.removeFile(this._fileId);
+        this._store.removeFile(this._fileId);
         //call error callback function, if provided.
-        if (!!this._config.onStreamingError && typeof this._config.onStreamingError === "function") {
-            this._config.onStreamingError(error);
+        if (!!this._store.config.onStreamingError && typeof this._store.config.onStreamingError === "function") {
+            this._store.config.onStreamingError(error);
         }
     }
 
     private _insertChunks(): void {
         //keep sending the processed data through the callback function, if provided.
-        this._storage.addChunks(this._fileId, this._chunks)
+        this._store.addChunks(this._fileId, this._chunks)
             .then((chunkIds: Array<string>) => {
-                if (!!this._config.onChunkProcesed && typeof this._config.onChunkProcesed === "function") {
-                    this._config.onChunkProcesed(chunkIds);
+                if (!!this._store.config.onChunkProcesed && typeof this._store.config.onChunkProcesed === "function") {
+                    this._store.config.onChunkProcesed(chunkIds);
                 }
                 this._chunks = [];
                 this._buffer.resume();

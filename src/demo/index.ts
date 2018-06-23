@@ -41,7 +41,7 @@ function onDatabaseConnection(): void {
         onParsingError: onParsingError
     };
     new Xstreamer().
-        stream(url, config)
+        init(url, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

@@ -1,30 +1,21 @@
 import { XtreamerConfig } from "../streamer/streamer.config";
 import { Base } from "../storage/base.model";
+import { DatabaseStore } from "../storage/database.store";
 
 class Parser extends Base {
 
-    private _parsingSuccessCallback: (fileId: string) => void;
-
-    public constructor(parsingSuccessCallback: (fileId: string) => void) {
+    public constructor() {
         super();
-        this._parsingSuccessCallback = parsingSuccessCallback;;
     }
 
-    public init(fileId: string, config: XtreamerConfig): Promise<void> {
-        return this._storage.connect(config)
-            .then(() => {
-                this._fileId = fileId
-                this._config = config;
-                this._processChunks();
-                return Promise.resolve();
-            })
-            .catch((error: any) => {
-                return Promise.reject(error);
-            });
+    public parse(fileId: string, store: DatabaseStore): void {
+        this._fileId = fileId;
+        this._store = store;
+        this._store.config.onParsingSuccess();
     }
 
     private _processChunks(): void {
-        this._storage.getChunks(this._fileId, 1, 0)
+        this._store.getChunks(this._fileId, 1, 0)
             .then((chunks: Array<string>) => {
                 console.log(chunks);
             })

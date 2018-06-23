@@ -1,16 +1,15 @@
 import { XtreamerConfig } from "../streamer/streamer.config";
-import { DatabaseStorage } from "../storage/database.storage";
+import { DatabaseStore } from "../storage/database.store";
 
 class Base {
 
-    protected _storage: DatabaseStorage;
-    protected _config: XtreamerConfig;
+    protected _store: DatabaseStore;
     protected _fileId: string;
+    protected _fileUrl: string;
 
     public constructor() {
-        this._storage = new DatabaseStorage();
+        this._store = new DatabaseStore();
     }
-
 }
 
 export { Base }

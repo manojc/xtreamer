@@ -5,11 +5,14 @@ import { ChunkSchemaInstance } from "./chunk.schema";
 import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE } from "../streamer/streamer.config";
 import { ObjectID } from "bson";
 
-class DatabaseStorage {
+class DatabaseStore {
 
     private _file: Model<Document>;
     private _chunk: Model<Document>;
-    private _config: XtreamerConfig;
+    private _config : XtreamerConfig;
+    public get config() : XtreamerConfig {
+        return this._config;
+    }
 
     public connect(config: XtreamerConfig): Promise<void> {
         if (!!this._config) {
@@ -119,10 +122,10 @@ class DatabaseStorage {
 
     private _validate(config: XtreamerConfig): Promise<void> {
         if (!config) {
-            return Promise.reject("xtreamer config nort provided");
+            return Promise.reject("xtreamer config not provided!");
         }
         if (!config.dbUrl || !config.dbUrl.trim()) {
-            return Promise.reject("database URL not provided");
+            return Promise.reject("database URL not provided!");
         }
         config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : DB_NAME;
         config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : FILE_COLLECTION_NAME;
@@ -149,4 +152,4 @@ class DatabaseStorage {
     //#endregion
 }
 
-export { DatabaseStorage };
+export { DatabaseStore };
