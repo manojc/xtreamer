@@ -1,6 +1,7 @@
 import { get, Request } from "request";
 import { Base } from "../storage/base.model";
 import { DatabaseStore } from "../storage/database.store";
+import { IncomingMessage } from "http";
 
 class Streamer extends Base {
 
@@ -17,15 +18,17 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
-        this._buffer = get(this._fileUrl)
+        this._buffer = get(this._fileUrl,  this._onResponse.bind(this))
             .on('complete', this._onStreamComplete.bind(this))
             .on('data', this._onStreamData.bind(this))
             .on("error", this._onStreamError.bind(this));
     }
 
+    private _onResponse(error: any, response: IncomingMessage, body: any): void {
+        this._store.updateFile(this._fileId, response.headers["content-length"]);
+    }
+
     private _onStreamComplete(): void {
-        //update file collection status
-        this._store.updateFile(this._fileId);
         //call success callback function, if provided.
         if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
             this._store.config.onStreamingSuccess(this._fileId);

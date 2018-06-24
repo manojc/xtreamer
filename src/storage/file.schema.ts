@@ -9,7 +9,17 @@ const XtreamerFileSchema = new Schema({
             validator: (value: string): boolean => {
                 return !!value && typeof value === "string" && !!value.trim();
             },
-            message: "URL should be a valid number!"
+            message: "URL should be a valid string!"
+        },
+    },
+    file_size: {
+        type: Schema.Types.Number,
+        default: 0,
+        validate: {
+            validator: (value: number): boolean => {
+                return (!!value || value === 0) && typeof value === "number" && !isNaN(value);
+            },
+            message: "file_size should be a valid number!"
         },
     },
     is_processed: {

@@ -23,6 +23,16 @@ class Parser extends Base {
                 console.error(error);
             });
     }
+
+    private _findTag(chunk: string): Array<number> {
+        return chunk.split("").reduce((indexes: Array<number>, char: string, index: number) => {
+            if (char && char.trim() && char === "<") {
+                indexes.push(index);
+            }
+            return indexes;
+        }, []);
+        return [];
+    }
 }
 
 export { Parser }
