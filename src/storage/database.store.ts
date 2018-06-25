@@ -9,8 +9,8 @@ class DatabaseStore {
 
     private _file: Model<Document>;
     private _chunk: Model<Document>;
-    private _config : XtreamerConfig;
-    public get config() : XtreamerConfig {
+    private _config: XtreamerConfig;
+    public get config(): XtreamerConfig {
         return this._config;
     }
 
@@ -20,31 +20,40 @@ class DatabaseStore {
         }
         return this._validate(config)
             .then(() => { return this._connect() })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 return Promise.reject(error)
             });
     }
 
     public addFile(url: string): Promise<string> {
-        return this._file.create({ url: url })
-            .then((response: any) => {
-                return Promise.resolve(response._id.toString());
+        return this._file.findOne({ url: url })
+            .then((doc: Document) => {
+                if (!!doc) {
+                    return Promise.resolve(doc._id.toString());
+                }
+                return this._file.create({ url: url })
+                    .then((doc: Document) => {
+                        return Promise.resolve(doc._id.toString());
+                    })
+                    .catch((error: Error) => {
+                        return Promise.reject(error)
+                    });
             })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 return Promise.reject(error)
             });
     }
 
     public updateFile(id: string, size: string): Promise<string> {
         return this._file
-            .findOneAndUpdate(new ObjectID(id), { 
+            .findOneAndUpdate(new ObjectID(id), {
                 is_processed: true,
                 file_size: parseInt(size)
             })
-            .then((response: any) => {
-                return Promise.resolve(response._id.toString());
+            .then((doc: Document) => {
+                return Promise.resolve(doc._id.toString());
             })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 return Promise.reject(error)
             });
     }
@@ -56,11 +65,11 @@ class DatabaseStore {
                     .then(() => {
                         return Promise.resolve();
                     })
-                    .catch((error: any) => {
+                    .catch((error: Error) => {
                         return Promise.reject(error)
                     });
             })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 return Promise.reject(error);
             });
     }
@@ -75,14 +84,14 @@ class DatabaseStore {
             return chunkDocs;
         }, []);
         return this._chunk.insertMany(chunkDocs)
-            .then((response: any) => {
-                return Promise.resolve(response.reduce((responseIds: Array<string>, doc: any) => {
+            .then((documents: Array<Document>) => {
+                return Promise.resolve(documents.reduce((responseIds: Array<string>, doc: Document) => {
                     responseIds.push(doc._id.toString());
                     return responseIds;
-                }, []))
+                }, []));
             })
-            .catch((error: any) => {
-                return Promise.reject(error)
+            .catch((error: Error) => {
+                return Promise.reject(error);
             });
     }
 
@@ -103,7 +112,7 @@ class DatabaseStore {
                 .then((chunks: Array<string>) => {
                     return Promise.resolve(chunks);
                 })
-                .catch((error: any) => {
+                .catch((error: Error) => {
                     return Promise.reject(error);
                 });
         } catch (error) {
@@ -117,7 +126,7 @@ class DatabaseStore {
             .then(() => {
                 return Promise.resolve();
             })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 return Promise.reject(error)
             });
     }
@@ -148,7 +157,7 @@ class DatabaseStore {
                 }
                 return Promise.resolve();
             })
-            .catch((error: any) => {
+            .catch((error: Error) => {
                 if (this._config.onDatabaseConnectionError && typeof this._config.onDatabaseConnectionError === "function") {
                     this._config.onDatabaseConnectionError(error);
                 }

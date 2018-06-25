@@ -1,5 +1,10 @@
-class ParserModel {
-
+class TagIndex {
+    [item: number]: { start: number, end: number };
+    hierarchy: number;
 }
 
-export { ParserModel }
+class Tags {
+    [name: string]: TagIndex;
+}
+
+export { Tags, TagIndex }
