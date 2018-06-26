@@ -18,17 +18,19 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
-        this._buffer = get(this._fileUrl,  this._onResponse.bind(this))
+        this._buffer = get(this._fileUrl, this._onResponse.bind(this))
             .on('complete', this._onStreamComplete.bind(this))
             .on('data', this._onStreamData.bind(this))
             .on("error", this._onStreamError.bind(this));
     }
 
     private _onResponse(error: any, response: IncomingMessage, body: any): void {
+        if (response.statusCode !== 200) {
+            this._store.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
+            this._store.removeFile(this._fileId);
+            return;
+        }
         this._store.updateFile(this._fileId, response.headers["content-length"]);
-    }
-
-    private _onStreamComplete(): void {
         //call success callback function, if provided.
         if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
             this._store.config.onStreamingSuccess(this._fileId);
@@ -37,6 +39,9 @@ class Streamer extends Base {
         if (!!this._streamingSuccessCallback && typeof this._streamingSuccessCallback === "function") {
             this._streamingSuccessCallback();
         }
+    }
+
+    private _onStreamComplete(): void {
     }
 
     private _onStreamData(chunk: Buffer): void {

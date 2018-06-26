@@ -59,9 +59,9 @@ class DatabaseStore {
     }
 
     public removeFile(id: string): Promise<void> {
-        return this.dropChunkCollection(id)
+        return this._file.findByIdAndRemove(new ObjectID(id))
             .then(() => {
-                return this._file.findByIdAndRemove(new ObjectID(id))
+                return this.dropChunkCollection(id)
                     .then(() => {
                         return Promise.resolve();
                     })
