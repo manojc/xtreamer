@@ -120,8 +120,12 @@ class DatabaseStore {
         }
     }
 
-    public dropChunkCollection(fileId: string): Promise<void> {
+    public async dropChunkCollection(fileId: string): Promise<void> {
         this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+        let list: Array<any> = await this._chunk.db.db.listCollections({ name: this._chunk.collection.name }).toArray();
+        if (!list || !list.length) {
+            return Promise.resolve();
+        }
         return this._chunk.collection.drop()
             .then(() => {
                 return Promise.resolve();

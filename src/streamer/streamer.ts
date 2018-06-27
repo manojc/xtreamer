@@ -30,6 +30,8 @@ class Streamer extends Base {
             this._store.removeFile(this._fileId);
             return;
         }
+        //if final bucket is not full save remaining chunks here
+        this._insertChunks(true);
         this._store.updateFile(this._fileId, response.headers["content-length"]);
         //call success callback function, if provided.
         if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
@@ -63,14 +65,22 @@ class Streamer extends Base {
         }
     }
 
-    private _insertChunks(): void {
+    private _insertChunks(isOnResponse?: boolean): void {
+        if (!this._chunks || !this._chunks.length) {
+            return;
+        }
         //keep sending the processed data through the callback function, if provided.
         this._store.addChunks(this._fileId, this._chunks)
             .then((chunkIds: Array<string>) => {
+                if (isOnResponse) {
+                    this._chunks = [];
+                    return;
+                }
                 if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
                     this._store.config.onChunksProcesed(chunkIds);
                 }
                 this._chunks = [];
+                this._buffer.destroy
                 this._buffer.resume();
             })
             .catch((error: any) => this._onStreamError(error));
