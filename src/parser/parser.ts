@@ -36,7 +36,7 @@ class Parser extends Base {
         let startIndex: number = 0;
         let endIndex: number = 0;
         let hierarchy: number = 0;
-        return chunk.split('').reduce((tags, char: string, index: number, array: Array<string>) => {
+        return chunk.split('').reduce((tags: Tags, char: string, index: number, array: Array<string>) => {
             if (!!char && char === "<" && !!array[index + 1]) {
                 if (array[index + 1] !== '/') {
                     ++hierarchy;
@@ -49,8 +49,7 @@ class Parser extends Base {
             if (!!char && (char === ">" || char === " ") && endIndex === 0) {
                 endIndex = index;
                 let name: string = chunk.substring(startIndex + 1, endIndex);
-                tags[name] = tags[name] || {};
-                tags[name]["hierarchy"] = hierarchy;
+                tags[name] = tags[name] || { hierarchy: hierarchy };
                 tags[name][Object.keys(tags[name]).length + 1] = {
                     start: startIndex,
                     end: endIndex
