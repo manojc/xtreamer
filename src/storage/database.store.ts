@@ -75,7 +75,7 @@ class DatabaseStore {
     }
 
     public addChunks(fileId: string, chunks: Array<string>): Promise<Array<string>> {
-        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
             chunkDocs.push({
                 file_id: new ObjectID(fileId),
@@ -97,7 +97,7 @@ class DatabaseStore {
 
     public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<Array<string>> {
         try {
-            this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+            this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
             return this._chunk
                 .aggregate([
                     { $skip: isNaN(skip) ? 0 : skip },
@@ -121,7 +121,7 @@ class DatabaseStore {
     }
 
     public dropChunkCollection(fileId: string): Promise<void> {
-        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionName);
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         return this._chunk.collection.drop()
             .then(() => {
                 return Promise.resolve();
@@ -142,7 +142,7 @@ class DatabaseStore {
         }
         config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : DB_NAME;
         config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : FILE_COLLECTION_NAME;
-        config.chunkCollectionName = !!config.chunkCollectionName && !!config.chunkCollectionName.trim() ? config.chunkCollectionName.trim() : CHUNK_COLLECTION_PREFIX;
+        config.chunkCollectionPrefix = !!config.chunkCollectionPrefix && !!config.chunkCollectionPrefix.trim() ? config.chunkCollectionPrefix.trim() : CHUNK_COLLECTION_PREFIX;
         config.bucketSize = isNaN(config.bucketSize) && config.bucketSize > 0 ? config.bucketSize : BUCKET_SIZE;
         this._config = config;
         return Promise.resolve();
