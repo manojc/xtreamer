@@ -18,7 +18,7 @@ class Parser extends Base {
         this._store.getChunks(this._fileId, 10, 0)
             .then((chunks: Array<string>) => {
                 if (!chunks || !chunks.length) {
-                    return this._store.config.onParsingError("No chunks found for parsing5!");
+                    return this._store.config.onParsingError("No chunks found for parsing!");
                 }
                 console.log(this._parseTags(chunks.reduce((chunkString: string, chunk: any) => {
                     chunkString += chunk.chunk;
@@ -49,7 +49,7 @@ class Parser extends Base {
             if (!!char && (char === ">" || char === " ") && endIndex === 0) {
                 endIndex = index;
                 let name: string = chunk.substring(startIndex + 1, endIndex);
-                tags[name] = tags[name] || { hierarchy: hierarchy };
+                tags[name] = tags[name] || { hierarchy: hierarchy, distance: endIndex - startIndex };
                 tags[name][Object.keys(tags[name]).length + 1] = {
                     start: startIndex,
                     end: endIndex
