@@ -8,7 +8,7 @@
         "test": "npm run test",
         "pm2": "./node_modules/pm2/bin/pm2 start apps.json",
         "tsc": "./node_modules/typescript/bin/tsc",
-        "tscw": "./node_modules/typescript/bin/tsc -w"
+        "tscw": "./node_modules/typescript/bin/tsc --watch"
     },
     "repository": {
         "type": "git",

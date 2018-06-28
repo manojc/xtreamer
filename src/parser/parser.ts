@@ -15,6 +15,7 @@ class Parser extends Base {
     }
 
     private _processChunks(): void {
+        // this._store.getChunks(this._fileId, this._store.config.bucketSize, 0)
         this._store.getChunks(this._fileId, 10, 0)
             .then((chunks: Array<string>) => {
                 if (!chunks || !chunks.length) {
@@ -36,6 +37,7 @@ class Parser extends Base {
         let startIndex: number = 0;
         let endIndex: number = 0;
         let hierarchy: number = 0;
+        let closingtagIndex: number = 0;
         return chunk.split('').reduce((tags: Tags, char: string, index: number, array: Array<string>) => {
             if (!!char && char === "<" && !!array[index + 1]) {
                 if (array[index + 1] !== '/') {
@@ -43,17 +45,25 @@ class Parser extends Base {
                     startIndex = index;
                     endIndex = 0;
                 } else {
+                    closingtagIndex = index;
                     --hierarchy;
                 }
             }
-            if (!!char && (char === ">" || char === " ") && endIndex === 0) {
-                endIndex = index;
-                let name: string = chunk.substring(startIndex + 1, endIndex);
-                tags[name] = tags[name] || { hierarchy: hierarchy, distance: endIndex - startIndex };
-                tags[name][Object.keys(tags[name]).length + 1] = {
-                    start: startIndex,
-                    end: endIndex
-                };
+            if (!!char && (char === ">" || char === " ")) {
+                if (endIndex === 0) {
+                    endIndex = index;
+                    let name: string = chunk.substring(startIndex + 1, endIndex);
+                    tags[name] = {
+                        count: tags[name] && tags[name].count ? ++tags[name].count : 1,
+                        hierarchy: hierarchy,
+                        end: endIndex,
+                        distance: tags[name] && tags[name].distance ? tags[name].distance : 0
+                    };
+                } else if (closingtagIndex !== 0 && char !== " ") {
+                    let name: string = chunk.substring(closingtagIndex + 2, index);
+                    let currentDistance: number = (closingtagIndex - 1) - tags[name].end;
+                    tags[name].distance = tags[name].distance && currentDistance < tags[name].distance ? tags[name].distance : currentDistance;
+                }
             }
             return tags;
         }, {});
