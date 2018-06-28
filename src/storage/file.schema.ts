@@ -25,6 +25,10 @@ const XtreamerFileSchema = new Schema({
     is_processed: {
         type: Schema.Types.Boolean,
         default: false
+    },
+    structure : {
+        type: Schema.Types.Mixed,
+        default: null
     }
 }, { timestamps: true });
 

@@ -45,12 +45,9 @@ class DatabaseStore {
             });
     }
 
-    public updateFile(id: string, size: string): Promise<string> {
+    public updateFile(id: string, params: { [key: string] : any }): Promise<string> {
         return this._file
-            .findOneAndUpdate(new ObjectID(id), {
-                is_processed: true,
-                file_size: parseInt(size)
-            })
+            .findOneAndUpdate(new ObjectID(id), params)
             .then((doc: Document) => {
                 return Promise.resolve(doc._id.toString());
             })

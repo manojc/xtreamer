@@ -22,6 +22,9 @@ class Parser extends Base {
             let response: { chunks: Array<string>, count: number } = await this._store.getChunks(this._fileId, limit, skip)
             if (!response || !response.chunks || !response.chunks.length) {
                 console.log(this._tags);
+                this._store.updateFile(this._fileId, {
+                    structure : this._tags
+                });
                 return this._store.config.onParsingSuccess();
             }
             this._tags = this._parseTags(response.chunks.reduce((chunkString: string, chunk: any) => {
@@ -30,7 +33,10 @@ class Parser extends Base {
             }, ""));
             if (skip >= response.count) {
                 console.log(this._tags);
-                this._store.config.onParsingSuccess();
+                this._store.updateFile(this._fileId, {
+                    structure : this._tags
+                });
+                return this._store.config.onParsingSuccess();
             }
             this._processChunks(limit, skip + limit - 1);
         } catch (error) {

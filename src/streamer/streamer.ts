@@ -32,7 +32,10 @@ class Streamer extends Base {
         }
         //if final bucket is not full save remaining chunks here
         this._insertChunks(true);
-        this._store.updateFile(this._fileId, response.headers["content-length"]);
+        this._store.updateFile(this._fileId, {
+            is_processed: true,
+            file_size: parseInt(response.headers["content-length"] || "0") || 0
+        });
         //call success callback function, if provided.
         if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
             this._store.config.onStreamingSuccess(this._fileId);
