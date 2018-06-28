@@ -28,8 +28,8 @@ class DatabaseStore {
     public addFile(url: string): Promise<string> {
         return this._file.findOne({ url: url })
             .then(async (doc: Document) => {
-                await this.dropChunkCollection(doc._id.toString());
                 if (!!doc) {
+                    await this.dropChunkCollection(doc._id.toString());
                     return Promise.resolve(doc._id.toString());
                 }
                 return this._file.create({ url: url })
