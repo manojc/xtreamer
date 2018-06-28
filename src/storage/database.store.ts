@@ -96,7 +96,7 @@ class DatabaseStore {
             });
     }
 
-    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<Array<string>> {
+    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<string>, count: number }> {
         try {
             this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
             return this._chunk
@@ -110,8 +110,11 @@ class DatabaseStore {
                         }
                     }
                 ])
-                .then((chunks: Array<string>) => {
-                    return Promise.resolve(chunks);
+                .then(async (chunks: Array<string>) => {                    
+                    return Promise.resolve({
+                        chunks: chunks,
+                        count: await this._chunk.count({})
+                    });
                 })
                 .catch((error: Error) => {
                     return Promise.reject(error);

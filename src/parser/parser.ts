@@ -4,6 +4,8 @@ import { Tags } from "./parser.model";
 
 class Parser extends Base {
 
+    private _tags: Tags;
+
     public constructor() {
         super();
     }
@@ -11,29 +13,34 @@ class Parser extends Base {
     public parse(fileId: string, store: DatabaseStore): void {
         this._fileId = fileId;
         this._store = store;
-        this._processChunks();
+        this._tags = {};
+        this._processChunks(this._store.config.bucketSize);
     }
 
-    private _processChunks(): void {
-        // this._store.getChunks(this._fileId, this._store.config.bucketSize, 0)
-        this._store.getChunks(this._fileId, 10, 0)
-            .then((chunks: Array<string>) => {
-                if (!chunks || !chunks.length) {
-                    return this._store.config.onParsingError("No chunks found for parsing!");
-                }
-                console.log(this._parseTags(chunks.reduce((chunkString: string, chunk: any) => {
-                    chunkString += chunk.chunk;
-                    return chunkString;
-                }, "")));
+    private async _processChunks(limit: number = 10, skip: number = 0): Promise<void> {
+        try {
+            let response: { chunks: Array<string>, count: number } = await this._store.getChunks(this._fileId, limit, skip)
+            if (!response || !response.chunks || !response.chunks.length) {
+                console.log(this._tags);
+                return this._store.config.onParsingSuccess();
+            }
+            this._tags = this._parseTags(response.chunks.reduce((chunkString: string, chunk: any) => {
+                chunkString += chunk.chunk;
+                return chunkString;
+            }, ""));
+            if (skip >= response.count) {
+                console.log(this._tags);
                 this._store.config.onParsingSuccess();
-            })
-            .catch((error: any) => {
-                console.error(error);
-                this._store.config.onParsingError(error);
-            });
+            }
+            this._processChunks(limit, skip + limit - 1);
+        } catch (error) {
+            console.error(error);
+            this._store.config.onParsingError(error);
+        }
     }
 
     private _parseTags(chunk: string): Tags {
+        let startTagMatch: boolean = false;
         let startIndex: number = 0;
         let endIndex: number = 0;
         let hierarchy: number = 0;
@@ -44,18 +51,20 @@ class Parser extends Base {
                     ++hierarchy;
                     startIndex = index;
                     endIndex = 0;
+                    startTagMatch = true;
                 } else {
                     closingtagIndex = index;
                     --hierarchy;
                 }
             }
             if (!!char && (char === ">" || char === " ")) {
-                if (endIndex === 0) {
+                if (endIndex === 0 && startTagMatch) {
                     endIndex = index;
+                    startTagMatch = false;
                     let name: string = chunk.substring(startIndex + 1, endIndex);
                     tags[name] = {
                         count: tags[name] && tags[name].count ? ++tags[name].count : 1,
-                        hierarchy: hierarchy,
+                        hierarchy: tags[name] && tags[name].hierarchy ? tags[name].hierarchy : hierarchy,
                         end: endIndex,
                         distance: tags[name] && tags[name].distance ? tags[name].distance : 0
                     };
@@ -66,7 +75,7 @@ class Parser extends Base {
                 }
             }
             return tags;
-        }, {});
+        }, this._tags);
     }
 }
 
