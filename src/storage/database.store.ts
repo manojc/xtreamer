@@ -29,7 +29,7 @@ class DatabaseStore {
         return this._file.findOne({ url: url })
             .then(async (doc: Document) => {
                 if (!!doc) {
-                    await this.dropChunkCollection(doc._id.toString());
+                    // await this.dropChunkCollection(doc._id.toString());
                     return Promise.resolve(doc._id.toString());
                 }
                 return this._file.create({ url: url })
