@@ -34,8 +34,8 @@ function onDatabaseConnectionError(error: any) {
 }
 
 (() => {
-    // const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml";
-    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/tpc-h/orders.xml";
+    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml";
+    // const url: string = "https://www.sevenoakssoundandvision.co.uk/feeds/whfdetails.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
         onDatabaseConnectionSuccess: onDatabaseConnectionSuccess,

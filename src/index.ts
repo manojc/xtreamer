@@ -17,8 +17,8 @@ export class Xtreamer extends Base {
     public init(fileUrl: string, config: XtreamerConfig): Promise<void> {
         return this._connect(fileUrl, config)
             .then(() => {
-                this._parser.parse(this._fileId, this._store);
-                // this._streamer.stream(this._fileUrl, this._fileId, this._store);
+                // this._parser.parse(this._fileId, this._store);
+                this._streamer.stream(this._fileUrl, this._fileId, this._store);
                 return Promise.resolve();
             })
             .catch((error: any) => {

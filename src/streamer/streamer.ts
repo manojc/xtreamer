@@ -24,14 +24,14 @@ class Streamer extends Base {
             .on("error", this._onStreamError.bind(this));
     }
 
-    private _onResponse(error: any, response: IncomingMessage, body: any): void {
+    private async _onResponse(error: any, response: IncomingMessage, body: any): Promise<void> {
         if (response.statusCode !== 200) {
             this._store.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
             this._store.removeFile(this._fileId);
             return;
         }
         //if final bucket is not full save remaining chunks here
-        this._insertChunks(true);
+        await this._insertChunks(true);
         this._store.updateFile(this._fileId, {
             is_processed: true,
             file_size: parseInt(response.headers["content-length"] || "0") || 0
@@ -49,11 +49,11 @@ class Streamer extends Base {
     private _onStreamComplete(): void {
     }
 
-    private _onStreamData(chunk: Buffer): void {
+    private async _onStreamData(chunk: Buffer): Promise<void> {
         this._chunks.push(chunk.toString());
         if (this._chunks.length >= this._store.config.bucketSize) {
             this._buffer.pause();
-            this._insertChunks();
+            await this._insertChunks();
         }
     }
 
@@ -68,12 +68,12 @@ class Streamer extends Base {
         }
     }
 
-    private _insertChunks(isOnResponse?: boolean): void {
+    private async _insertChunks(isOnResponse?: boolean): Promise<void> {
         if (!this._chunks || !this._chunks.length) {
-            return;
+            return Promise.resolve();
         }
         //keep sending the processed data through the callback function, if provided.
-        this._store.addChunks(this._fileId, this._chunks)
+        return await this._store.addChunks(this._fileId, this._chunks)
             .then((chunkIds: Array<string>) => {
                 if (isOnResponse) {
                     this._chunks = [];
