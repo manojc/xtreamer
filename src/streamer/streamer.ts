@@ -2,6 +2,7 @@ import { get, Request } from "request";
 import { Base } from "../storage/base.model";
 import { DatabaseStore } from "../storage/database.store";
 import { IncomingMessage } from "http";
+import { createWriteStream } from "fs";
 
 class Streamer extends Base {
 
@@ -18,6 +19,12 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
+        // let i = 0;
+        // get(this._fileUrl)
+        // .on('complete', () => console.log("completed"))
+        // .on('data', () => ++i % 500 === 0 ? console.log(`chunk - ${++i}`) : i)
+        // .on("error", () => console.log("completed"))
+        // .pipe(createWriteStream("./data.xml"));
         this._buffer = get(this._fileUrl, this._onResponse.bind(this))
             .on('complete', this._onStreamComplete.bind(this))
             .on('data', this._onStreamData.bind(this))
@@ -31,7 +38,7 @@ class Streamer extends Base {
             return;
         }
         //if final bucket is not full save remaining chunks here
-        await this._insertChunks(true);
+        await this._insertChunks(this._chunks, true);
         this._store.updateFile(this._fileId, {
             is_processed: true,
             file_size: parseInt(response.headers["content-length"] || "0") || 0
@@ -49,11 +56,11 @@ class Streamer extends Base {
     private _onStreamComplete(): void {
     }
 
-    private async _onStreamData(chunk: Buffer): Promise<void> {
+    private _onStreamData(chunk: Buffer): void {
         this._chunks.push(chunk.toString());
         if (this._chunks.length >= this._store.config.bucketSize) {
-            this._buffer.pause();
-            await this._insertChunks();
+            this._insertChunks(this._chunks);
+            this._chunks = [];
         }
     }
 
@@ -68,23 +75,16 @@ class Streamer extends Base {
         }
     }
 
-    private async _insertChunks(isOnResponse?: boolean): Promise<void> {
-        if (!this._chunks || !this._chunks.length) {
-            return Promise.resolve();
+    private _insertChunks(chunks: Array<string>, isOnResponse?: boolean): void {
+        if (!chunks || !chunks.length) {
+            return;
         }
         //keep sending the processed data through the callback function, if provided.
-        return await this._store.addChunks(this._fileId, this._chunks)
+        this._store.addChunks(this._fileId, chunks)
             .then((chunkIds: Array<string>) => {
-                if (isOnResponse) {
-                    this._chunks = [];
-                    return;
-                }
                 if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
                     this._store.config.onChunksProcesed(chunkIds);
                 }
-                this._chunks = [];
-                this._buffer.destroy
-                this._buffer.resume();
             })
             .catch((error: any) => this._onStreamError(error));
     }
