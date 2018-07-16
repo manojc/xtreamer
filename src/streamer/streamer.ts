@@ -19,15 +19,9 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
-        // let i = 0;
-        // get(this._fileUrl)
-        // .on('complete', () => console.log("completed"))
-        // .on('data', () => ++i % 500 === 0 ? console.log(`chunk - ${++i}`) : i)
-        // .on("error", () => console.log("completed"))
-        // .pipe(createWriteStream("./data.xml"));
         this._buffer = get(this._fileUrl, this._onResponse.bind(this))
-            .on('complete', this._onStreamComplete.bind(this))
             .on('data', this._onStreamData.bind(this))
+            .on('complete', this._onStreamComplete.bind(this))
             .on("error", this._onStreamError.bind(this));
     }
 
@@ -56,11 +50,15 @@ class Streamer extends Base {
     private _onStreamComplete(): void {
     }
 
-    private _onStreamData(chunk: Buffer): void {
+    private async _onStreamData(chunk: Buffer): Promise<void> {
+        this._chunks = this._chunks || [];
         this._chunks.push(chunk.toString());
         if (this._chunks.length >= this._store.config.bucketSize) {
-            this._insertChunks(this._chunks);
-            this._chunks = [];
+            console.log(this._chunks.length);
+            this._buffer.pause();
+            await this._insertChunks(this._chunks);
+            delete this._chunks;
+            this._buffer.resume();
         }
     }
 
