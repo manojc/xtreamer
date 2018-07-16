@@ -38,7 +38,7 @@ class Streamer extends Base {
             return;
         }
         //if final bucket is not full save remaining chunks here
-        await this._insertChunks(this._chunks, true);
+        await this._insertChunks(this._chunks);
         this._store.updateFile(this._fileId, {
             is_processed: true,
             file_size: parseInt(response.headers["content-length"] || "0") || 0
@@ -75,16 +75,17 @@ class Streamer extends Base {
         }
     }
 
-    private _insertChunks(chunks: Array<string>, isOnResponse?: boolean): void {
+    private _insertChunks(chunks: Array<string>): Promise<void> {
         if (!chunks || !chunks.length) {
-            return;
+            return Promise.resolve();
         }
         //keep sending the processed data through the callback function, if provided.
-        this._store.addChunks(this._fileId, chunks)
+        return this._store.addChunks(this._fileId, chunks)
             .then((chunkIds: Array<string>) => {
                 if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
                     this._store.config.onChunksProcesed(chunkIds);
                 }
+                return Promise.resolve();
             })
             .catch((error: any) => this._onStreamError(error));
     }
