@@ -2,12 +2,13 @@ import { get, Request } from "request";
 import { Base } from "../storage/base.model";
 import { DatabaseStore } from "../storage/database.store";
 import { IncomingMessage } from "http";
-import { createWriteStream } from "fs";
+import { Transform, TransformCallback } from "stream";
 
 class Streamer extends Base {
 
     private _chunks: Array<string> = [];
     private _buffer: Request;
+    private _transform: Transform;
     private _streamingSuccessCallback: () => void;
 
     public constructor(streamingSuccessCallback: () => void) {
@@ -19,10 +20,25 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
-        this._buffer = get(this._fileUrl, this._onResponse.bind(this))
-            .on('data', this._onStreamData.bind(this))
-            .on('complete', this._onStreamComplete.bind(this))
-            .on("error", this._onStreamError.bind(this));
+        // this._buffer = get(this._fileUrl, this._onResponse.bind(this));
+        // get(this._fileUrl, this._onResponse.bind(this))
+        //     .on('complete', this._onStreamComplete.bind(this))
+        //     .on("error", this._onStreamError.bind(this))
+        //     .pipe(this._transform);
+        get(this._fileUrl).pipe(this.buildTransform());
+    }
+
+    private buildTransform(): Transform {
+        if (!!this._transform) {
+            return;
+        }
+        let that = this;
+        this._transform = new Transform({ objectMode: true });
+        this._transform._transform = async function(chunk: Buffer, encoding: string, callback: TransformCallback) {
+            await that._onStreamData(chunk);
+            callback();
+        }
+        return this._transform;
     }
 
     private async _onResponse(error: any, response: IncomingMessage, body: any): Promise<void> {
@@ -54,17 +70,15 @@ class Streamer extends Base {
         this._chunks = this._chunks || [];
         this._chunks.push(chunk.toString());
         if (this._chunks.length >= this._store.config.bucketSize) {
-            console.log(this._chunks.length);
-            this._buffer.pause();
             await this._insertChunks(this._chunks);
             delete this._chunks;
-            this._buffer.resume();
         }
+        return Promise.resolve();
     }
 
     private _onStreamError(error: Error): void {
         //destroy the buffer and stop processing
-        this._buffer.destroy();
+        // this._buffer.destroy();
         //rollback the database changes
         this._store.removeFile(this._fileId);
         //call error callback function, if provided.
