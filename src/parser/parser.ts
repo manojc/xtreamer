@@ -53,7 +53,6 @@ class Parser extends Base {
             }
             this._processChunks(limit, skip + limit - 1);
         } catch (error) {
-            debugger;
             console.error(error);
             this._store.config.onParsingError(error);
         }
@@ -135,17 +134,23 @@ class Parser extends Base {
                     // `closingtagIndex - 1` is the character before < in closing tag
                     // tags[name].end points to > in starting tag
                     // difference gives text between <> and </>
+                    // if (!tags[name]) {
+                    //     debugger;
+                    // }
                     let currentDistance: number = (closingtagIndex - 1) - tags[name].end;
                     //replace previous distance if current distance is larger
                     tags[name].distance = tags[name].distance && currentDistance < tags[name].distance ? 
                                             tags[name].distance : 
                                             currentDistance;
                     // increment the count, initialise with 1 if first tag
-                    tags[name].count = tags[name] && tags[name].count ? ++tags[name].count : 1,
+                    tags[name].count = tags[name] && tags[name].count ? ++tags[name].count : 1;
                     // mark this as the end of the tag processing
                     // this helps getting the start point in case this is the last
                     // closing tag in current chunk string
                     this._indexToStartFrom = (index + 1) - lastChunkStartIndex;
+                    //reset the closing tag here which will stop counting the nodes until it is et in
+                    // opening tag logic
+                    closingtagIndex = 0;
                 }
             }
             return tags;

@@ -25,7 +25,10 @@ class Streamer extends Base {
         //     .on('complete', this._onStreamComplete.bind(this))
         //     .on("error", this._onStreamError.bind(this))
         //     .pipe(this._transform);
-        get(this._fileUrl).pipe(this.buildTransform());
+        get(this._fileUrl)
+            .on('complete', this._onStreamComplete.bind(this))
+            .on("error", this._onStreamError.bind(this))
+            .pipe(this.buildTransform());
     }
 
     private buildTransform(): Transform {
@@ -38,6 +41,7 @@ class Streamer extends Base {
             await that._onStreamData(chunk);
             callback();
         }
+        this._transform.on("end", this._onStreamComplete.bind(this));
         return this._transform;
     }
 
@@ -63,7 +67,22 @@ class Streamer extends Base {
         }
     }
 
-    private _onStreamComplete(): void {
+    private async _onStreamComplete(): Promise<any> {
+        //if final bucket is not full save remaining chunks here
+        await this._insertChunks(this._chunks);
+        this._store.updateFile(this._fileId, {
+            is_processed: true,
+            file_size: 0
+            // file_size: parseInt(response.headers["content-length"] || "0") || 0
+        });
+        //call success callback function, if provided.
+        if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
+            this._store.config.onStreamingSuccess(this._fileId);
+        }
+        //callback for stream parser
+        if (!!this._streamingSuccessCallback && typeof this._streamingSuccessCallback === "function") {
+            this._streamingSuccessCallback();
+        }
     }
 
     private async _onStreamData(chunk: Buffer): Promise<void> {
