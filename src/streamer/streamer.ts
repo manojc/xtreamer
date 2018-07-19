@@ -26,8 +26,8 @@ class Streamer extends Base {
         //     .on("error", this._onStreamError.bind(this))
         //     .pipe(this._transform);
         get(this._fileUrl)
-            .on('complete', this._onStreamComplete.bind(this))
-            .on("error", this._onStreamError.bind(this))
+            .on("complete", (response: any) => this._onResponse(response))
+            .on("error",  (error: any) => this._onStreamError(error))
             .pipe(this.buildTransform());
     }
 
@@ -41,11 +41,10 @@ class Streamer extends Base {
             await that._onStreamData(chunk);
             callback();
         }
-        this._transform.on("end", this._onStreamComplete.bind(this));
         return this._transform;
     }
 
-    private async _onResponse(error: any, response: IncomingMessage, body: any): Promise<void> {
+    private async _onResponse(response: IncomingMessage): Promise<void> {
         if (response.statusCode !== 200) {
             this._store.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
             this._store.removeFile(this._fileId);
@@ -67,7 +66,7 @@ class Streamer extends Base {
         }
     }
 
-    private async _onStreamComplete(): Promise<any> {
+    private async _onStreamComplete(a,b,c,d): Promise<any> {
         //if final bucket is not full save remaining chunks here
         await this._insertChunks(this._chunks);
         this._store.updateFile(this._fileId, {
