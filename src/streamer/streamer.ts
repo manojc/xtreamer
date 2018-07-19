@@ -20,11 +20,6 @@ class Streamer extends Base {
         this._store = store;
         this._fileId = fileId;
         this._fileUrl = fileUrl;
-        // this._buffer = get(this._fileUrl, this._onResponse.bind(this));
-        // get(this._fileUrl, this._onResponse.bind(this))
-        //     .on('complete', this._onStreamComplete.bind(this))
-        //     .on("error", this._onStreamError.bind(this))
-        //     .pipe(this._transform);
         get(this._fileUrl)
             .on("complete", (response: any) => this._onResponse(response))
             .on("error",  (error: any) => this._onStreamError(error))
