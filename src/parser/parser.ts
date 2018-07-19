@@ -125,7 +125,7 @@ class Parser extends Base {
                     // initialise it if this is first tag of its kind
                     tags[name] = tags[name] || {};
                     // set hierarchy
-                    tags[name].hierarchy = this.hierarchy;
+                    tags[name].hierarchy = tags[name].hierarchy || this.hierarchy;
                     // set index for end tag
                     tags[name].end = endIndex;
                 } 
