@@ -6,6 +6,7 @@ class Parser extends Base {
 
     private _tags: Tags;
     private _indexToStartFrom: number;
+    private hierarchy: number = 0;
 
     public constructor() {
         super();
@@ -16,6 +17,7 @@ class Parser extends Base {
         this._store = store;
         this._tags = {};
         this._indexToStartFrom = 0;
+        this.hierarchy = 0;
         this._processChunks(this._store.config.bucketSize);
     }
 
@@ -66,8 +68,6 @@ class Parser extends Base {
         let startIndex: number = 0;
         // set to the index of > in starting tag (1.e. <>)
         let endIndex: number = 0;
-        // set to the position of the current node in XML tree
-        let hierarchy: number = 0;
         // set to the index of < in the closing tag (1.e. </>)
         let closingtagIndex: number = 0;
 
@@ -83,11 +83,17 @@ class Parser extends Base {
             // condition to check find < in starting tag (1.e. <>)
             // second condition checks if < is not the end of the chunk string
             if (!!char && char === "<" && !!array[index + 1]) {
+                
+                //check for <?xml and <!DOCTYPE type tags and skip them
+                // if (array[index + 1] === '?' || array[index + 1] === '!') {
+                //     return;
+                // }
+
                 // checks if next character is not /, means it is not an ending tag (1.e. </>)
                 if (array[index + 1] !== '/') {
                     // starting tag found
                     // increment the hierarchy count 
-                    ++hierarchy;
+                    ++this.hierarchy;
                     // set the start index to current index
                     startIndex = index;
                     // set the start tag match flag to true as we found the start tag
@@ -97,7 +103,7 @@ class Parser extends Base {
                     // this will be used to calculate the distance (tag length)
                     closingtagIndex = index;
                     // end of a tag decrement hierarchy count
-                    --hierarchy;
+                    --this.hierarchy;
                 }
             }
             // if not <, check if it is > in starting tag (1.e. <>)
@@ -119,7 +125,7 @@ class Parser extends Base {
                     // initialise it if this is first tag of its kind
                     tags[name] = tags[name] || {};
                     // set hierarchy
-                    tags[name].hierarchy = hierarchy;
+                    tags[name].hierarchy = this.hierarchy;
                     // set index for end tag
                     tags[name].end = endIndex;
                 } 
