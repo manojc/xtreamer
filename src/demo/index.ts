@@ -1,5 +1,6 @@
 import { Xtreamer } from "../index";
 import { XtreamerConfig } from "../streamer/streamer.config";
+import { FILES } from "./files";
 
 let chunkCount = 0;
 
@@ -34,10 +35,9 @@ function onDatabaseConnectionError(error: any) {
 }
 
 (() => {
-    const url: string = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml";
-    // const url: string = "https://www.sevenoakssoundandvision.co.uk/feeds/whfdetails.xml";
     let config: XtreamerConfig = {
         dbUrl: "mongodb://localhost",
+        chunksReused: 2,
         onDatabaseConnectionSuccess: onDatabaseConnectionSuccess,
         onDatabaseConnectionError: onDatabaseConnectionError,
         onChunksProcesed: onChunkProcesed,
@@ -47,7 +47,7 @@ function onDatabaseConnectionError(error: any) {
         onParsingError: onParsingError
     };
     new Xtreamer().
-        init(url, config)
+        init(FILES.url23Mb, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

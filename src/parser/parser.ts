@@ -38,8 +38,15 @@ class Parser extends Base {
 
             // reset 
             let lastChunkStartIndex: number = 0;
+            // calculate lastChunkStartIndex
+            // this depends on how many previous chunks are reused
+            // e.g. in case 1 chunk is reused, lastChunkStartIndex wil be the index pointing
+            // to the first character in the last chunk.
             let chunkText: string = response.chunks.reduce((chunkString: string, chunk: any, index: number) => {
-                if (response.chunks.length - 1 === index) {
+                // response.chunks.length - 1 if last one chunk is reused
+                // general term would be response.chunks.length - n where n is 
+                // number of last chunks reused.
+                if (response.chunks.length - this._store.config.chunksReused === index) {
                     lastChunkStartIndex = chunkString.length;
                 }
                 chunkString += chunk.chunk;
@@ -53,7 +60,10 @@ class Parser extends Base {
                 });
                 return this._store.config.onParsingSuccess();
             }
-            this._processChunks(limit, skip + limit - 1);
+            // chunk reuse logic (skip + limit - 1) which uses last one chunk
+            // in general it'd be (skip + limit - n) where 
+            // n is the number of last chunks reused.
+            this._processChunks(limit, skip + limit - this._store.config.chunksReused);
         } catch (error) {
             console.error(error);
             this._store.config.onParsingError(error);

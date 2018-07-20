@@ -21,7 +21,7 @@ class Streamer extends Base {
         this._fileId = fileId;
         this._fileUrl = fileUrl;
         get(this._fileUrl)
-            .on("complete", (response: any) => this._onResponse(response))
+            .on("complete", (response: any) => this._onStreamComplete(response))
             .on("error",  (error: any) => this._onStreamError(error))
             .pipe(this.buildTransform());
     }
@@ -39,7 +39,7 @@ class Streamer extends Base {
         return this._transform;
     }
 
-    private async _onResponse(response: IncomingMessage): Promise<void> {
+    private async _onStreamComplete(response: IncomingMessage): Promise<void> {
         if (response.statusCode !== 200) {
             this._store.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
             this._store.removeFile(this._fileId);
@@ -61,30 +61,12 @@ class Streamer extends Base {
         }
     }
 
-    private async _onStreamComplete(a,b,c,d): Promise<any> {
-        //if final bucket is not full save remaining chunks here
-        await this._insertChunks(this._chunks);
-        this._store.updateFile(this._fileId, {
-            is_processed: true,
-            file_size: 0
-            // file_size: parseInt(response.headers["content-length"] || "0") || 0
-        });
-        //call success callback function, if provided.
-        if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
-            this._store.config.onStreamingSuccess(this._fileId);
-        }
-        //callback for stream parser
-        if (!!this._streamingSuccessCallback && typeof this._streamingSuccessCallback === "function") {
-            this._streamingSuccessCallback();
-        }
-    }
-
     private async _onStreamData(chunk: Buffer): Promise<void> {
         this._chunks = this._chunks || [];
         this._chunks.push(chunk.toString());
         if (this._chunks.length >= this._store.config.bucketSize) {
             await this._insertChunks(this._chunks);
-            delete this._chunks;
+            this._chunks = [];
         }
         return Promise.resolve();
     }

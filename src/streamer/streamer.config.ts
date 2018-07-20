@@ -2,6 +2,7 @@ const DB_NAME: string = "xtreamer_db";
 const FILE_COLLECTION_NAME: string = "files";
 const CHUNK_COLLECTION_PREFIX: string = "chunks";
 const BUCKET_SIZE: number = 150;
+const CHUNKS_REUSED: number = 1;
 
 /**
  * Configuration file to setup xtreamer parameters.
@@ -52,6 +53,14 @@ class XtreamerConfig {
      * @memberof XtreamerConfig
      */
     bucketSize?: number = BUCKET_SIZE;
+    /**
+     * Optional Field. 
+     * This is the count of chunks reused while parsing the streamed file. 
+     * Default value is `1` (1 chunk would be reused in every next parsing iteration). 
+     * @type {number}
+     * @memberof XtreamerConfig
+     */
+    chunksReused?: number = CHUNKS_REUSED;
     /**
      * Optional Field. 
      * Callback function triggered after inserting bucketful of chunks. 
