@@ -73,16 +73,16 @@ class Parser extends Base {
     private _parseTags(chunkText: string, lastChunkStartIndex: number): Tags {
 
         // set to true if < in starting tag is found.
-        let startTagMatch: boolean = false;
-        // set to the index of < in starting tag (1.e. <>)
-        let startIndex: number = 0;
-        // set to the index of > in starting tag (1.e. <>)
-        let endIndex: number = 0;
-        // set to the index of < in the closing tag (1.e. </>)
-        let closingtagIndex: number = 0;
+        let openingTagFound: boolean = false;
+        // set to the index of < in starting tag (i.e. <>)
+        let openingTagOpeningBracketIndex: number = 0;
+        // set to the index of > in starting tag (i.e. <>)
+        let openingTagClosingBracketIndex: number = 0;
+        // set to the index of < in the closing tag (i.e. </>)
+        let closingTagOpeningBracketIndex: number = 0;
 
         // iterate over individual character and keep updating `this._tags` object.
-        return chunkText.split('').reduce((tags: Tags, char: string, index: number, array: Array<string>) => {
+        return chunkText.split('').reduce((tags: Tags, currentChar: string, index: number, array: Array<string>) => {
 
             // the first chunk text should skip all the characters till `_indexToStartFrom` index
             // because that part was processed in previous iteration
@@ -90,70 +90,85 @@ class Parser extends Base {
                 return tags;
             }
 
-            // condition to check find < in starting tag (1.e. <>)
+            // condition to check find < in starting tag (i.e. <>)
             // second condition checks if < is not the end of the chunk string
-            if (!!char && char === "<" && !!array[index + 1]) {
+            if (!!currentChar && currentChar === "<" && !!array[index + 1]) {
                 
                 //check for <?xml and <!DOCTYPE type tags and skip them
                 // if (array[index + 1] === '?' || array[index + 1] === '!') {
                 //     return;
                 // }
 
-                // checks if next character is not /, means it is not an ending tag (1.e. </>)
+                // checks if next character is not /, means it is not an ending tag (i.e. </>)
                 if (array[index + 1] !== '/') {
                     // starting tag found
                     // increment the hierarchy count 
                     ++this.hierarchy;
                     // set the start index to current index
-                    startIndex = index;
+                    openingTagOpeningBracketIndex = index;
                     // set the start tag match flag to true as we found the start tag
-                    startTagMatch = true;
+                    openingTagFound = true;
                 } else {
                     // this is < in closing tag (i.e. </>)
                     // this will be used to calculate the distance (tag length)
-                    closingtagIndex = index;
+                    closingTagOpeningBracketIndex = index;
                     // end of a tag decrement hierarchy count
                     --this.hierarchy;
                 }
             }
-            // if not <, check if it is > in starting tag (1.e. <>)
+            // if not <, check if it is > in starting tag (i.e. <>)
             // last condition will hold true in case of XML node attributes
-            else if (!!char && (char === ">" || char === " ")) {
+            else if (!!currentChar && (currentChar === ">" || currentChar === " ")) {
                 // check if startTagMatch is set to confirm
                 // that it is > in starting tag (i.e. <>)
                 // if yes, build the tag
-                if (startTagMatch) {
+                if (openingTagFound) {
                     // set the start index to current index
-                    endIndex = index;
+                    openingTagClosingBracketIndex = index;
                     // reset startTagMatch to avoid this path in next
                     // < in starting tag
-                    startTagMatch = false;
+                    openingTagFound = false;
                     // startIndex + 1 points to first character after <
                     // endIndex tag points to >
                     // text between `startIndex + 1` & endIndex is the tag
-                    let name: string = chunkText.substring(startIndex + 1, endIndex);
+                    let name: string = chunkText.substring(
+                        openingTagOpeningBracketIndex + 1, openingTagClosingBracketIndex
+                    );
+                    // check if it's an empty tag
+                    let emptyTag: boolean = name[name.length - 1] === "/";
+                    if (emptyTag) {
+                        name = name.slice(0, -1);
+                    }
+                    // check if it's a namespace tag
+                    if (name.indexOf(":") > -1) {
+                        tags[name] = tags[name] || {};
+                        tags[name].namespace = name.split(":")[1].trim();
+                    }
                     // initialise it if this is first tag of its kind
                     tags[name] = tags[name] || {};
                     // set hierarchy
                     tags[name].hierarchy = tags[name].hierarchy || this.hierarchy;
                     // set index for end tag
-                    tags[name].end = endIndex;
+                    tags[name].end = openingTagClosingBracketIndex;
+                    if (emptyTag) {
+                        tags[name].distance = tags[name].distance ? tags[name].distance : 0;
+                        tags[name].count = tags[name].count ? ++tags[name].count : 1;
+                        // closingtagIndex = 0;
+                        --this.hierarchy;
+                    }
                 } 
                 // if not starting tag, it has to be the ending tag,
                 // calculate the node distance
                 // and increment the count here
-                else if (closingtagIndex !== 0 && char !== " ") {
+                else if (closingTagOpeningBracketIndex !== 0 && currentChar !== " ") {
                     // closingtagIndex points to < & index is pointing to >
                     // use `closingtagIndex + 2` to skip < and / in closing tag
                     // so string in between `closingtagIndex + 2` and `index` is the tag
-                    let name: string = chunkText.substring(closingtagIndex + 2, index);
+                    let name: string = chunkText.substring(closingTagOpeningBracketIndex + 2, index);
                     // `closingtagIndex - 1` is the character before < in closing tag
                     // tags[name].end points to > in starting tag
                     // difference gives text between <> and </>
-                    // if (!tags[name]) {
-                    //     debugger;
-                    // }
-                    let currentDistance: number = (closingtagIndex - 1) - tags[name].end;
+                    let currentDistance: number = (closingTagOpeningBracketIndex - 1) - tags[name].end;
                     //replace previous distance if current distance is larger
                     tags[name].distance = tags[name].distance && currentDistance < tags[name].distance ? 
                                             tags[name].distance : 
@@ -166,7 +181,7 @@ class Parser extends Base {
                     this._indexToStartFrom = (index + 1) - lastChunkStartIndex;
                     //reset the closing tag here which will stop counting the nodes until it is et in
                     // opening tag logic
-                    closingtagIndex = 0;
+                    closingTagOpeningBracketIndex = 0;
                 }
             }
             return tags;
