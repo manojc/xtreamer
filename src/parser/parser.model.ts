@@ -2,7 +2,7 @@ class Tags {
     [name: string]: {
         count?: number,
         end?: number,
-        hierarchy?: number,
+        hierarchyList?: Array<number>,
         distance?: number,
         namespace?: string
     };
