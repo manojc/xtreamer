@@ -24,7 +24,7 @@ class Parser extends Base {
     private async _processChunks(limit: number = 10, skip: number = 0): Promise<void> {
         try {
             // paginated response using limit and count
-            let response: { chunks: Array<string>, count: number };
+            let response: { chunks: Array<{ chunk: string }>, count: number };
             response = await this._store.getChunks(this._fileId, limit, skip)
 
             // check if no response, stop processing and save tags here
@@ -42,7 +42,7 @@ class Parser extends Base {
             // this depends on how many previous chunks are reused
             // e.g. in case 1 chunk is reused, lastChunkStartIndex wil be the index pointing
             // to the first character in the last chunk.
-            let chunkText: string = response.chunks.reduce((chunkString: string, chunk: any, index: number) => {
+            let chunkText: string = response.chunks.reduce((chunkString: string, chunk: { chunk: string }, index: number) => {
                 // response.chunks.length - 1 if last one chunk is reused
                 // general term would be response.chunks.length - n where n is 
                 // number of last chunks reused.
@@ -53,6 +53,7 @@ class Parser extends Base {
                 return chunkString;
             }, "");
             this._tags = this._parseTags(chunkText, lastChunkStartIndex);
+
             if (skip >= response.count) {
                 console.log(this._tags);
                 this._store.updateFile(this._fileId, {
@@ -60,6 +61,7 @@ class Parser extends Base {
                 });
                 return this._store.config.onParsingSuccess();
             }
+
             // chunk reuse logic (skip + limit - 1) which uses last one chunk
             // in general it'd be (skip + limit - n) where 
             // n is the number of last chunks reused.
@@ -82,7 +84,7 @@ class Parser extends Base {
 
             // the first chunk text should skip all the characters till `_indexToStartFrom` index
             // because that part was processed in previous iteration
-            if (this._indexToStartFrom > index || !currentChar) {
+            if (this._indexToStartFrom > index) {
                 return tags;
             }
 
@@ -102,9 +104,6 @@ class Parser extends Base {
                 if (array[index + 1] && array[index + 1] === '/') {
                     // make sure openingTagOpeningBracketIndex is set before
                     // setting closingTagOpeningBracketIndex
-                    if (openingTagOpeningBracketIndex < 0) {
-                        return tags;
-                    }
                     closingTagOpeningBracketIndex = index;
                 } else {
                     // set the start index to current index
