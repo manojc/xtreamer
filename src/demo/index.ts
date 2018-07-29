@@ -18,8 +18,12 @@ function onStreamingError(error: any): void {
     console.error(`error occurred!!`, error);
 }
 
-function onParsingSuccess(): void {
-    console.log(`file parsing finished!`);
+function onChunkParsingSuccess(): void {
+    console.log(`chunk parsing finished!`);
+}
+
+function onNodeParsingSuccess(): void {
+    console.log(`node parsing finished!`);
 }
 
 function onParsingError(error: any): void {
@@ -43,7 +47,8 @@ function onDatabaseConnectionError(error: any) {
         onChunksProcesed: onChunkProcesed,
         onStreamingSuccess: onStreamingSuccess,
         onStreamingError: onStreamingError,
-        onParsingSuccess: onParsingSuccess,
+        onChunkParsingSuccess: onChunkParsingSuccess,
+        onNodeParsingSuccess: onNodeParsingSuccess,
         onParsingError: onParsingError
     };
     new Xtreamer().

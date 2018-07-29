@@ -2,13 +2,15 @@ import { connect } from "mongoose";
 import { Model, Document } from "mongoose";
 import { FileSchemaInstance } from "./file.schema";
 import { ChunkSchemaInstance } from "./chunk.schema";
-import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE } from "../streamer/streamer.config";
+import { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE, NODES_COLLECTION_PREFIX } from "../streamer/streamer.config";
 import { ObjectID } from "bson";
+import { NodeSchemaInstance } from "./node.schema";
 
 class DatabaseStore {
 
     private _file: Model<Document>;
     private _chunk: Model<Document>;
+    private _node: Model<Document>;
     private _config: XtreamerConfig;
     public get config(): XtreamerConfig {
         return this._config;
@@ -22,6 +24,16 @@ class DatabaseStore {
             .then(() => { return this._connect() })
             .catch((error: Error) => {
                 return Promise.reject(error)
+            });
+    }
+
+    public getFile(fileId: string): Promise<any> {
+        return this._file.findOne({ _id: fileId }, { _id: 0, structure: 1 })
+            .then((response: Document) => {
+                return Promise.resolve(response)
+            })
+            .catch((error: any) => {
+                return Promise.reject(error);
             });
     }
 
@@ -45,7 +57,7 @@ class DatabaseStore {
             });
     }
 
-    public updateFile(id: string, params: { [key: string] : any }): Promise<string> {
+    public updateFile(id: string, params: { [key: string]: any }): Promise<string> {
         return this._file
             .findOneAndUpdate(new ObjectID(id), params)
             .then((doc: Document) => {
@@ -73,7 +85,7 @@ class DatabaseStore {
     }
 
     public addChunks(fileId: string, chunks: Array<string>): Promise<Array<string>> {
-        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+        this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
             chunkDocs.push({
                 file_id: new ObjectID(fileId),
@@ -93,9 +105,9 @@ class DatabaseStore {
             });
     }
 
-    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<string>, count: number }> {
+    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<{ chunk: string }>, count: number }> {
         try {
-            this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+            this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
             return this._chunk
                 .aggregate([
                     { $skip: isNaN(skip) ? 0 : skip },
@@ -107,7 +119,7 @@ class DatabaseStore {
                         }
                     }
                 ])
-                .then(async (chunks: Array<string>) => {                    
+                .then(async (chunks: Array<{ chunk: string }>) => {
                     return Promise.resolve({
                         chunks: chunks,
                         count: await this._chunk.count({})
@@ -122,7 +134,7 @@ class DatabaseStore {
     }
 
     public async dropChunkCollection(fileId: string): Promise<void> {
-        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+        this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         let list: Array<any> = await this._chunk.db.db.listCollections({ name: this._chunk.collection.name }).toArray();
         if (!list || !list.length) {
             return Promise.resolve();
@@ -133,6 +145,25 @@ class DatabaseStore {
             })
             .catch((error: Error) => {
                 return Promise.reject(error)
+            });
+    }
+
+    public addNodes(fileId: string, nodes: Array<any>): Promise<boolean> {
+        this._node = NodeSchemaInstance(fileId, this._config.nodeCollectionPrefix);
+        const nodeDocs: Array<any> = nodes.reduce((nodeDocs: Array<any>, node: any) => {
+            nodeDocs.push({
+                file_id: new ObjectID(fileId),
+                node: node
+            });
+            return nodeDocs;
+        }, []);
+        return this._node
+            .insertMany(nodeDocs)
+            .then((response: Array<Document>) => {
+                return Promise.resolve(true);
+            })
+            .catch((error: any) => {
+                return Promise.reject(error);
             });
     }
 
@@ -148,6 +179,7 @@ class DatabaseStore {
         config.dbName = !!config.dbName && !!config.dbName.trim() ? config.dbName.trim() : DB_NAME;
         config.fileCollectionName = !!config.fileCollectionName && !!config.fileCollectionName.trim() ? config.fileCollectionName.trim() : FILE_COLLECTION_NAME;
         config.chunkCollectionPrefix = !!config.chunkCollectionPrefix && !!config.chunkCollectionPrefix.trim() ? config.chunkCollectionPrefix.trim() : CHUNK_COLLECTION_PREFIX;
+        config.nodeCollectionPrefix = !!config.nodeCollectionPrefix && !!config.nodeCollectionPrefix.trim() ? config.nodeCollectionPrefix.trim() : NODES_COLLECTION_PREFIX;
         config.bucketSize = isNaN(config.bucketSize) && config.bucketSize > 0 ? config.bucketSize : BUCKET_SIZE;
         this._config = config;
         return Promise.resolve();

@@ -1,6 +1,7 @@
 const DB_NAME: string = "xtreamer_db";
 const FILE_COLLECTION_NAME: string = "files";
 const CHUNK_COLLECTION_PREFIX: string = "chunks";
+const NODES_COLLECTION_PREFIX: string = "nodes";
 const BUCKET_SIZE: number = 150;
 const CHUNKS_REUSED: number = 1;
 
@@ -47,6 +48,16 @@ class XtreamerConfig {
     chunkCollectionPrefix?: string = CHUNK_COLLECTION_PREFIX;
     /**
      * Optional Field. 
+     * The collection name prefix to store node parsed from read chunks. 
+     * Default name used is `nodes` if this property is not set. 
+     * The collection name is combination of `prefix` & `_id` from file collection separated by `_`. 
+     * e.g. nodes_5b33ef8313db4618dce5c58f
+     * @type {string}
+     * @memberof XtreamerConfig
+     */
+    nodeCollectionPrefix?: string = NODES_COLLECTION_PREFIX;
+    /**
+     * Optional Field. 
      * This is the count of chunks stored in `chunks` collection per insert query. 
      * Default size is `150` (150 chunks read from file are held in memory at a time). 
      * @type {number}
@@ -89,12 +100,19 @@ class XtreamerConfig {
      */
     onStreamingError?: (error: any) => void;
     /**
-     * Callback function triggered after successful parsing.
+     * Callback function triggered after successful chunk parsing.
      * @callback
      * @type {Function}
      * @memberof XtreamerConfig
      */
-    onParsingSuccess?: () => void;
+    onChunkParsingSuccess?: () => void;
+    /**
+     * Callback function triggered after successful node parsing.
+     * @callback
+     * @type {Function}
+     * @memberof XtreamerConfig
+     */
+    onNodeParsingSuccess?: () => void;
     /**
      * Callback function triggered if parsing fails. 
      * Parsing failure removes the file reference and processed chunks from database. 
@@ -120,4 +138,4 @@ class XtreamerConfig {
     onDatabaseConnectionError?: (error: any) => void;
 }
 
-export { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, BUCKET_SIZE }
+export { XtreamerConfig, DB_NAME, FILE_COLLECTION_NAME, CHUNK_COLLECTION_PREFIX, NODES_COLLECTION_PREFIX, BUCKET_SIZE }

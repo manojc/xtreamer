@@ -2,14 +2,16 @@ import { Base } from "../storage/base.model";
 import { DatabaseStore } from "../storage/database.store";
 import { Tags } from "./parser.model";
 
-class Parser extends Base {
+class ChunkParser extends Base {
 
     private _tags: Tags;
     private _indexToStartFrom: number;
     private _hierarchy: number = 0;
+    private _parsingSuccessCallback: () => void;
 
-    public constructor() {
+    public constructor(parsingSuccessCallback: () => void) {
         super();
+        this._parsingSuccessCallback = parsingSuccessCallback;
     }
 
     public parse(fileId: string, store: DatabaseStore): void {
@@ -25,7 +27,7 @@ class Parser extends Base {
         try {
             // paginated response using limit and count
             let response: { chunks: Array<{ chunk: string }>, count: number };
-            response = await this._store.getChunks(this._fileId, limit, skip)
+            response = await this._store.getChunks(this._fileId, limit, skip);
 
             // check if no response, stop processing and save tags here
             if (!response || !response.chunks || !response.chunks.length) {
@@ -38,34 +40,33 @@ class Parser extends Base {
             // this depends on how many previous chunks are reused
             // e.g. in case 1 chunk is reused, lastChunkStartIndex wil be the index pointing
             // to the first character in the last chunk.
-            let chunkText: string = response.chunks.reduce((chunkString: string, chunk: { chunk: string }, index: number) => {
+            let chunkText: string = response.chunks.reduce((chunkString: string, chunkObj: { chunk: string }, index: number) => {
                 // response.chunks.length - 1 if last one chunk is reused
                 // general term would be response.chunks.length - n where n is 
                 // number of last chunks reused.
                 if (response.chunks.length - this._store.config.chunksReused === index) {
                     lastChunkStartIndex = chunkString.length;
                 }
-                chunkString += chunk.chunk;
+                chunkString += chunkObj.chunk;
                 return chunkString;
             }, "");
             
-            this._tags = this._parseTags(chunkText, lastChunkStartIndex);
-
-            if (skip >= response.count) {
-                return this._onParsingSuccess();
-            }
+            this._tags = this._parseTags(chunkText, lastChunkStartIndex, skip + limit >= response.count);
 
             // chunk reuse logic (skip + limit - 1) which uses last one chunk
             // in general it'd be (skip + limit - n) where 
             // n is the number of last chunks reused.
             this._processChunks(limit, skip + limit - this._store.config.chunksReused);
+
         } catch (error) {
             console.error(error);
-            this._store.config.onParsingError(error);
+            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
+                this._store.config.onParsingError(error);
+            }
         }
     }
 
-    private _parseTags(chunkText: string, lastChunkStartIndex: number): Tags {
+    private _parseTags(chunkText: string, lastChunkStartIndex: number, isLastIteration: boolean): Tags {
 
         // set to the index of < in starting tag (i.e. <>)
         let openingTagOpeningBracketIndex: number = -1;
@@ -79,7 +80,7 @@ class Parser extends Base {
 
             // the first chunk text should skip all the characters till `_indexToStartFrom` index
             // because that part was processed in previous iteration
-            if (this._indexToStartFrom > index || exitLoop) {
+            if (this._indexToStartFrom > index || (exitLoop && !isLastIteration)) {
                 return tags;
             }
 
@@ -178,7 +179,7 @@ class Parser extends Base {
                 // do this only if last chunk is being processed
                 if (index >= lastChunkStartIndex) {
                     this._indexToStartFrom = (index + 1) - lastChunkStartIndex;
-                    exitLoop = true;
+                    exitLoop = !isLastIteration;
                 }
             }
 
@@ -188,17 +189,15 @@ class Parser extends Base {
     }
 
     private _onParsingSuccess(): void {
-        this._tags = this._sortStructureByHierarchy();
-        console.log(this._tags);
         this._store.updateFile(this._fileId, {
             structure: this._tags
         });
-        if (this._store.config.onParsingSuccess && typeof this._store.config.onParsingSuccess ===  "function") {
-            return this._store.config.onParsingSuccess();
+        if (this._store.config.onChunkParsingSuccess && typeof this._store.config.onChunkParsingSuccess ===  "function") {
+            this._store.config.onChunkParsingSuccess();
         }
-    }
-
-    private _getRootNode(): void {
+        if (this._parsingSuccessCallback && typeof this._parsingSuccessCallback ===  "function") {
+            this._parsingSuccessCallback();
+        }
     }
 
     private _sortStructureByHierarchy(): Tags {
@@ -220,4 +219,4 @@ class Parser extends Base {
     }
 }
 
-export { Parser }
+export { ChunkParser }
