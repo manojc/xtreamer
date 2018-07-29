@@ -29,14 +29,10 @@ class Parser extends Base {
 
             // check if no response, stop processing and save tags here
             if (!response || !response.chunks || !response.chunks.length) {
-                console.log(this._tags);
-                this._store.updateFile(this._fileId, {
-                    structure: this._tags
-                });
-                return this._store.config.onParsingSuccess();
+                return this._onParsingSuccess();
             }
 
-            // reset 
+            // reset lastChunkStartIndex
             let lastChunkStartIndex: number = 0;
             // calculate lastChunkStartIndex
             // this depends on how many previous chunks are reused
@@ -52,14 +48,11 @@ class Parser extends Base {
                 chunkString += chunk.chunk;
                 return chunkString;
             }, "");
+            
             this._tags = this._parseTags(chunkText, lastChunkStartIndex);
 
             if (skip >= response.count) {
-                console.log(this._tags);
-                this._store.updateFile(this._fileId, {
-                    structure: this._tags
-                });
-                return this._store.config.onParsingSuccess();
+                return this._onParsingSuccess();
             }
 
             // chunk reuse logic (skip + limit - 1) which uses last one chunk
@@ -79,37 +72,38 @@ class Parser extends Base {
         // set to the index of < in the closing tag (i.e. </>)
         let closingTagOpeningBracketIndex: number = 0;
 
+        let exitLoop: boolean = false;
+
         // iterate over individual character and keep updating `this._tags` object.
         return chunkText.split('').reduce((tags: Tags, currentChar: string, index: number, array: Array<string>) => {
 
             // the first chunk text should skip all the characters till `_indexToStartFrom` index
             // because that part was processed in previous iteration
-            if (this._indexToStartFrom > index) {
+            if (this._indexToStartFrom > index || exitLoop) {
                 return tags;
             }
 
+            // check for <?xml and <!DOCTYPE type tags a skip them
+            // if (array[index + 1] === '?' || array[index + 1] === '!') {
+            //     return;
+            // }
+
             // condition to check find < in starting tag (i.e. <>)
             // second condition checks if < is not the end of the chunk string
-            if (currentChar === "<") {
-
-                // check for <?xml and <!DOCTYPE type tags a skip them
-                // if (array[index + 1] === '?' || array[index + 1] === '!') {
-                //     return;
-                // }
-
+            if (currentChar === "<" && array[index + 1] === '/') {
                 // checks if next character is /, means it is an ending tag (i.e. </>)
                 // set closingTagOpeningBracketIndex here
+                closingTagOpeningBracketIndex = index;
+                openingTagOpeningBracketIndex = -1;
+
                 // else it will be a starting tag (i.e. <>)
                 // set openingTagOpeningBracketIndex here
-                if (array[index + 1] && array[index + 1] === '/') {
-                    // make sure openingTagOpeningBracketIndex is set before
-                    // setting closingTagOpeningBracketIndex
-                    closingTagOpeningBracketIndex = index;
-                } else {
-                    // set the start index to current index
-                    openingTagOpeningBracketIndex = index;
-                    closingTagOpeningBracketIndex = 0;
-                }
+                // make sure openingTagOpeningBracketIndex is set before
+                // setting closingTagOpeningBracketIndex
+            } else if (currentChar === "<" && array[index + 1] !== '/') {
+                // set the start index to current index
+                openingTagOpeningBracketIndex = index;
+                closingTagOpeningBracketIndex = 0;
             }
 
             // if not <, check if it is > in starting tag (i.e. <>)
@@ -137,7 +131,7 @@ class Parser extends Base {
                 ++this._hierarchy;
                 tags[name].hierarchyList = tags[name].hierarchyList || [];
                 if (tags[name].hierarchyList.indexOf(this._hierarchy) < 0) {
-                    tags[name].hierarchyList.push(this._hierarchy);
+                    tags[name].hierarchyList.push(Number(this._hierarchy));
                 }
                 // set index for end tag
                 tags[name].end = index;
@@ -172,16 +166,20 @@ class Parser extends Base {
                     currentDistance;
                 // increment the count, initialise with 1 if first tag
                 tags[name].count = tags[name] && tags[name].count ? ++tags[name].count : 1;
-                // mark this as the end of the tag processing
-                // this helps getting the start point in case this is the last
-                // closing tag in current chunk string
-                this._indexToStartFrom = (index + 1) - lastChunkStartIndex;
                 //reset the closing tag here which will stop counting the nodes until 
                 // it is set in opening tag logic
                 closingTagOpeningBracketIndex = 0;
                 // decrease the hierarchy once the tag count is incremented
                 // next opening tag will increase it again
                 --this._hierarchy;
+                // mark this as the end of the tag processing
+                // this helps getting the start point in case this is the last
+                // closing tag in current chunk string
+                // do this only if last chunk is being processed
+                if (index >= lastChunkStartIndex) {
+                    this._indexToStartFrom = (index + 1) - lastChunkStartIndex;
+                    exitLoop = true;
+                }
             }
 
             return tags;
@@ -189,8 +187,36 @@ class Parser extends Base {
         }, this._tags);
     }
 
-    private _getRootNode(): void {
+    private _onParsingSuccess(): void {
+        this._tags = this._sortStructureByHierarchy();
+        console.log(this._tags);
+        this._store.updateFile(this._fileId, {
+            structure: this._tags
+        });
+        if (this._store.config.onParsingSuccess && typeof this._store.config.onParsingSuccess ===  "function") {
+            return this._store.config.onParsingSuccess();
+        }
+    }
 
+    private _getRootNode(): void {
+    }
+
+    private _sortStructureByHierarchy(): Tags {
+        if (!this._tags) {
+            return;
+        }    
+        
+        let sorted: Tags = {};
+
+        Object.keys(this._tags).sort((tag1, tag2) => {
+            this._tags[tag1].hierarchyList.sort();
+            this._tags[tag2].hierarchyList.sort();
+            return this._tags[tag1].hierarchyList[0] - this._tags[tag2].hierarchyList[0];
+        }).forEach((key) => {
+            sorted[key] = this._tags[key];
+        });
+
+        return sorted;
     }
 }
 
