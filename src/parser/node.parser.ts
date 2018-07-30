@@ -5,6 +5,9 @@ import { DatabaseStore } from "../storage/database.store";
 
 class NodeParser extends Base {
 
+    //to be removed (along with usages)
+    private count: number = 0;
+
     private _tags: Tags;
     private _nodes: Array<any>;
     private _rootNode: string;
@@ -40,8 +43,6 @@ class NodeParser extends Base {
         this._nodes = [];
 
         this._processNodes(this._store.config.bucketSize);
-
-
     }
 
     private _getRootNode(): void {
@@ -83,11 +84,12 @@ class NodeParser extends Base {
                     await this._store.addNodes(this._fileId, this._nodes);
                 }
                 if (this._store.config.onNodeParsingSuccess && typeof this._store.config.onNodeParsingSuccess === "function") {
-                    return this._store.config.onNodeParsingSuccess();
+                    this._store.config.onNodeParsingSuccess();
                 }
                 if (this._parsingSuccessCallback && typeof this._parsingSuccessCallback === "function") {
-                    return this._parsingSuccessCallback();
+                    this._parsingSuccessCallback();
                 }
+                return;
             }
 
             let chunkText: string = response.chunks.reduce((chunkString: string, chunkObj: { chunk: string }, index: number) => {
@@ -95,7 +97,7 @@ class NodeParser extends Base {
             }, this._remainingChunkText);
 
             this._remainingChunkText = "";
-            this._parseNodes(chunkText);
+            await this._parseNodes(chunkText);
 
             this._processNodes(this._store.config.bucketSize, skip + limit)
 
@@ -107,15 +109,17 @@ class NodeParser extends Base {
         }
     }
 
-    private _parseNodes(chunkText: string): Promise<any> {
+    private async _parseNodes(chunkText: string): Promise<any> {
 
         if (this._nodes.length === this._store.config.bucketSize * 10) {
-            this._store.addNodes(this._fileId, this._nodes);
+            this.count = this.count + this._nodes.length;
+            console.log(this.count);            
+            await this._store.addNodes(this._fileId, this._nodes);
             this._nodes = [];
         }
 
         if (!chunkText) {
-            this._remainingChunkText = chunkText;
+            this._remainingChunkText = "";
             return;
         }
 
@@ -136,16 +140,32 @@ class NodeParser extends Base {
             return;
         }
 
-        parseString(node, { attrkey: "__attributes", explicitArray: false }, (error: any, xmlNode: any) => {
-            if (error) {
-                if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                    this._store.config.onParsingError(`no tags were found for file id - ${this._fileId}!`);
-                }
-                return;
+        let xmlNode: any;
+
+        try {
+            xmlNode = await this.xml2jsparser(node);
+            xmlNode = xmlNode[this._rootNode];
+        } catch (error) {
+            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
+                this._store.config.onParsingError(error);
             }
-            this._nodes.push(xmlNode[this._rootNode]);
-            chunkText = chunkText.slice(endIndex);
-            return this._parseNodes(chunkText);
+            return;
+        }
+
+        this._nodes.push(xmlNode);
+        chunkText = chunkText.slice(endIndex);
+        return await this._parseNodes(chunkText);
+    }
+
+    // converts callback to promise
+    private xml2jsparser(node: string): Promise<any> {
+        return new Promise<any>((resolve: (xmlNode: any) => void, reject: (error: any) => void) => {
+            parseString(node, { attrkey: "__attributes", explicitArray: false }, (error: any, xmlNode: any) => {
+                if (error) {
+                    return reject(error);
+                }
+                return resolve(xmlNode);
+            });
         });
     }
 }
