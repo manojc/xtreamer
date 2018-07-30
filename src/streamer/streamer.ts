@@ -88,9 +88,9 @@ class Streamer extends Base {
         }
         //keep sending the processed data through the callback function, if provided.
         return this._store.addChunks(this._fileId, chunks)
-            .then((chunkIds: Array<string>) => {
+            .then((chunkCount: number) => {
                 if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
-                    this._store.config.onChunksProcesed(chunkIds);
+                    this._store.config.onChunksProcesed(chunkCount);
                 }
                 return Promise.resolve();
             })

@@ -3,7 +3,7 @@ const FILE_COLLECTION_NAME: string = "files";
 const CHUNK_COLLECTION_PREFIX: string = "chunks";
 const NODES_COLLECTION_PREFIX: string = "nodes";
 const BUCKET_SIZE: number = 150;
-const CHUNKS_REUSED: number = 1;
+const CHUNK_OFFSET: number = 1;
 
 /**
  * Configuration file to setup xtreamer parameters.
@@ -66,12 +66,12 @@ class XtreamerConfig {
     bucketSize?: number = BUCKET_SIZE;
     /**
      * Optional Field. 
-     * This is the count of chunks reused while parsing the streamed file. 
-     * Default value is `1` (1 chunk would be reused in every next parsing iteration). 
+     * This is the count of chunks carried forward to use in next chunk parsing iteration. 
+     * Default value is `1` (last chunk from previous iteration would be the first in next iteration). 
      * @type {number}
      * @memberof XtreamerConfig
      */
-    chunksReused?: number = CHUNKS_REUSED;
+    chunkOffset?: number = CHUNK_OFFSET;
     /**
      * Optional Field. 
      * Callback function triggered after inserting bucketful of chunks. 
@@ -81,7 +81,27 @@ class XtreamerConfig {
      * @type {Function}
      * @memberof XtreamerConfig
      */
-    onChunksProcesed?: (chunkIds: Array<string>) => void;
+    onChunksProcesed?: (chunkCount: number) => void;
+    /**
+     * Optional Field. 
+     * Callback function triggered after parsing bucketful of chunks. 
+     * By default, this function gets triggered after inserting 150 nodes. 
+     * Callback provides array of ids for parsed chunks.
+     * @callback
+     * @type {Function}
+     * @memberof XtreamerConfig
+     */
+    onChunksParsed?: (nodeCount: number) => void;
+    /**
+     * Optional Field. 
+     * Callback function triggered after inserting bucketful of nodes. 
+     * By default, this function gets triggered after inserting 150 nodes. 
+     * Callback provides array of ids for parsed nodes.
+     * @callback
+     * @type {Function}
+     * @memberof XtreamerConfig
+     */
+    onNodesParsed?: (nodeCount: number) => void;
     /**
      * Callback function triggered after successful streaming. 
      * Callback provides id of the file processed.

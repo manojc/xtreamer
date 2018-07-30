@@ -20,7 +20,7 @@ class ChunkParser extends Base {
         this._tags = new Tags();
         this._indexToStartFrom = 0;
         this._hierarchy = 0;
-        this._processChunks(this._store.config.bucketSize);
+        this._processChunks(this._store.config.bucketSize - 50);
     }
 
     private async _processChunks(limit: number = 10, skip: number = 0): Promise<void> {
@@ -31,6 +31,9 @@ class ChunkParser extends Base {
 
             // check if no response, stop processing and save tags here
             if (!response || !response.chunks || !response.chunks.length) {
+                await this._store.updateFile(this._fileId, {
+                    structure: this._tags
+                });
                 return this._onParsingSuccess();
             }
 
@@ -44,7 +47,7 @@ class ChunkParser extends Base {
                 // response.chunks.length - 1 if last one chunk is reused
                 // general term would be response.chunks.length - n where n is 
                 // number of last chunks reused.
-                if (response.chunks.length - this._store.config.chunksReused === index) {
+                if (response.chunks.length - this._store.config.chunkOffset === index) {
                     lastChunkStartIndex = chunkString.length;
                 }
                 chunkString += chunkObj.chunk;
@@ -53,13 +56,16 @@ class ChunkParser extends Base {
             
             this._tags = this._parseTags(chunkText, lastChunkStartIndex, skip + limit >= response.count);
 
+            if (this._store.config.onChunksParsed && typeof this._store.config.onChunksParsed === "function") {
+                this._store.config.onChunksParsed(response.chunks.length);
+            }
+
             // chunk reuse logic (skip + limit - 1) which uses last one chunk
             // in general it'd be (skip + limit - n) where 
             // n is the number of last chunks reused.
-            this._processChunks(limit, skip + limit - this._store.config.chunksReused);
+            this._processChunks(limit, skip + limit - this._store.config.chunkOffset);
 
         } catch (error) {
-            console.error(error);
             if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
                 this._store.config.onParsingError(error);
             }
@@ -189,9 +195,6 @@ class ChunkParser extends Base {
     }
 
     private _onParsingSuccess(): void {
-        this._store.updateFile(this._fileId, {
-            structure: this._tags
-        });
         if (this._store.config.onChunkParsingSuccess && typeof this._store.config.onChunkParsingSuccess ===  "function") {
             this._store.config.onChunkParsingSuccess();
         }

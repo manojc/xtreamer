@@ -42,6 +42,7 @@ class DatabaseStore {
             .then(async (doc: Document) => {
                 if (!!doc) {
                     await this.dropChunkCollection(doc._id.toString());
+                    await this.dropNodeCollection(doc._id.toString());
                     return Promise.resolve(doc._id.toString());
                 }
                 return this._file.create({ url: url })
@@ -84,8 +85,8 @@ class DatabaseStore {
             });
     }
 
-    public addChunks(fileId: string, chunks: Array<string>): Promise<Array<string>> {
-        this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+    public addChunks(fileId: string, chunks: Array<string>): Promise<number> {
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
             chunkDocs.push({
                 file_id: new ObjectID(fileId),
@@ -95,10 +96,7 @@ class DatabaseStore {
         }, []);
         return this._chunk.insertMany(chunkDocs)
             .then((documents: Array<Document>) => {
-                return Promise.resolve(documents.reduce((responseIds: Array<string>, doc: Document) => {
-                    responseIds.push(doc._id.toString());
-                    return responseIds;
-                }, []));
+                return Promise.resolve(documents.length);
             })
             .catch((error: Error) => {
                 return Promise.reject(error);
@@ -107,7 +105,7 @@ class DatabaseStore {
 
     public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<{ chunk: string }>, count: number }> {
         try {
-            this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+            this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
             return this._chunk
                 .aggregate([
                     { $skip: isNaN(skip) ? 0 : skip },
@@ -134,21 +132,17 @@ class DatabaseStore {
     }
 
     public async dropChunkCollection(fileId: string): Promise<void> {
-        this._chunk = this._chunk || ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
+        this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         let list: Array<any> = await this._chunk.db.db.listCollections({ name: this._chunk.collection.name }).toArray();
         if (!list || !list.length) {
             return Promise.resolve();
         }
         return this._chunk.collection.drop()
-            .then(() => {
-                return Promise.resolve();
-            })
-            .catch((error: Error) => {
-                return Promise.reject(error)
-            });
+            .then(() => { return Promise.resolve(); })
+            .catch((error: Error) => { return Promise.reject(error) });
     }
 
-    public addNodes(fileId: string, nodes: Array<any>): Promise<boolean> {
+    public addNodes(fileId: string, nodes: Array<any>): Promise<number> {
         this._node = NodeSchemaInstance(fileId, this._config.nodeCollectionPrefix);
         const nodeDocs: Array<any> = nodes.reduce((nodeDocs: Array<any>, node: any) => {
             nodeDocs.push({
@@ -159,12 +153,23 @@ class DatabaseStore {
         }, []);
         return this._node
             .insertMany(nodeDocs)
-            .then((response: Array<Document>) => {
-                return Promise.resolve(true);
+            .then((documents: Array<Document>) => {
+                return Promise.resolve(documents.length);
             })
             .catch((error: any) => {
                 return Promise.reject(error);
             });
+    }
+
+    public async dropNodeCollection(fileId: string): Promise<void> {
+        this._node = NodeSchemaInstance(fileId, this._config.nodeCollectionPrefix);
+        let list: Array<any> = await this._node.db.db.listCollections({ name: this._node.collection.name }).toArray();
+        if (!list || !list.length) {
+            return Promise.resolve();
+        }
+        return this._node.collection.drop()
+            .then(() => { return Promise.resolve(); })
+            .catch((error: Error) => { return Promise.reject(error) });
     }
 
     //#region Private Methods

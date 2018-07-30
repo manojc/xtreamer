@@ -5,9 +5,6 @@ import { DatabaseStore } from "../storage/database.store";
 
 class NodeParser extends Base {
 
-    //to be removed (along with usages)
-    private count: number = 0;
-
     private _tags: Tags;
     private _nodes: Array<any>;
     private _rootNode: string;
@@ -42,7 +39,7 @@ class NodeParser extends Base {
 
         this._nodes = [];
 
-        this._processNodes(this._store.config.bucketSize);
+        this._processNodes(this._store.config.bucketSize - 50);
     }
 
     private _getRootNode(): void {
@@ -81,7 +78,10 @@ class NodeParser extends Base {
             // check if no response, stop processing and save tags here
             if (!response || !response.chunks || !response.chunks.length) {
                 if (this._nodes && this._nodes.length) {
-                    await this._store.addNodes(this._fileId, this._nodes);
+                    let nodeCount: number = await this._store.addNodes(this._fileId, this._nodes);
+                    if (!!this._store.config.onNodesParsed && typeof this._store.config.onNodesParsed === "function") {
+                        this._store.config.onNodesParsed(nodeCount);
+                    }
                 }
                 if (this._store.config.onNodeParsingSuccess && typeof this._store.config.onNodeParsingSuccess === "function") {
                     this._store.config.onNodeParsingSuccess();
@@ -111,10 +111,11 @@ class NodeParser extends Base {
 
     private async _parseNodes(chunkText: string): Promise<any> {
 
-        if (this._nodes.length === this._store.config.bucketSize * 10) {
-            this.count = this.count + this._nodes.length;
-            console.log(this.count);            
-            await this._store.addNodes(this._fileId, this._nodes);
+        if (this._nodes.length === this._store.config.bucketSize - 50) {
+            let nodeCount: number = await this._store.addNodes(this._fileId, this._nodes);
+            if (!!this._store.config.onNodesParsed && typeof this._store.config.onNodesParsed === "function") {
+                this._store.config.onNodesParsed(nodeCount);
+            }
             this._nodes = [];
         }
 
