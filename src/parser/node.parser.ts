@@ -161,12 +161,19 @@ class NodeParser extends Base {
     // converts callback to promise
     private xml2jsparser(node: string): Promise<any> {
         return new Promise<any>((resolve: (xmlNode: any) => void, reject: (error: any) => void) => {
-            parseString(node, { attrkey: "__attributes", explicitArray: false }, (error: any, xmlNode: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                return resolve(xmlNode);
-            });
+            parseString(
+                node,
+                {
+                    attrkey: "__attributes",
+                    explicitArray: false,
+                    emptyTag: true
+                },
+                (error: any, xmlNode: any) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    return resolve(xmlNode);
+                });
         });
     }
 }

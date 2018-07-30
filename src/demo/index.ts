@@ -11,12 +11,16 @@ function onChunkProcesed(chunkCount: number): void {
 
 function onChunksParsed(chunkCount: number): void {
     count += chunkCount;
-    console.log(`total chunks parsed ${count}`);
+    if (count % 1000 === 0) {
+        console.log(`total chunks parsed ${count}`);
+    }
 }
 
 function onNodesParsed(nodeCount: number): void {
     count += nodeCount;
-    console.log(`total nodes parsed ${count}`);
+    if (count % 1000 === 0) {
+        console.log(`total nodes parsed ${count}`);
+    }
 }
 
 function onStreamingSuccess(fileId: string): void {
@@ -67,7 +71,7 @@ function onDatabaseConnectionError(error: any) {
         onParsingError: onParsingError
     };
     new Xtreamer().
-        init(FILES.url109Mb, config)
+        init(FILES.url82Mb, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

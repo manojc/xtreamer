@@ -60,7 +60,7 @@ class DatabaseStore {
 
     public updateFile(id: string, params: { [key: string]: any }): Promise<string> {
         return this._file
-            .findOneAndUpdate(new ObjectID(id), params)
+            .findOneAndUpdate({ _id: new ObjectID(id)}, params)
             .then((doc: Document) => {
                 return Promise.resolve(doc._id.toString());
             })
