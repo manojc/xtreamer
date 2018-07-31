@@ -124,12 +124,11 @@ class NodeParser extends Base {
             return;
         }
 
-        const nodeMatcher = new RegExp(`<${this._rootNode}( |>)(.*)</${this._rootNode}>`);
-        
-        let startIndex: number = chunkText.indexOf(`<${this._rootNode}`);
+        const nodeMatcher = new RegExp(`<${this._rootNode}( |>)`);        
+        let startIndex: number = chunkText.search(nodeMatcher);
         let endIndex: number = chunkText.indexOf(`</${this._rootNode}>`);
 
-        if (endIndex < 0) {
+        if (startIndex <0 || endIndex < 0) {
             this._remainingChunkText = chunkText;
             return;
         }
