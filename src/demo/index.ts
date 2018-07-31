@@ -70,8 +70,8 @@ function onDatabaseConnectionError(error: any) {
         onNodeParsingSuccess: onNodeParsingSuccess,
         onParsingError: onParsingError
     };
-    new Xtreamer().
-        init(FILES.url23Mb, config)
+    new Xtreamer()
+        .init(FILES.url23Mb, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

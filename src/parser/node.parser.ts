@@ -1,9 +1,8 @@
 import { parseString } from "xml2js";
-import { Base } from "../storage/base.model";
 import { Tags } from "./parser.model";
 import { DatabaseStore } from "../storage/database.store";
 
-class NodeParser extends Base {
+class NodeParser {
 
     private _tags: Tags;
     private _nodes: Array<any>;
@@ -12,34 +11,30 @@ class NodeParser extends Base {
     private _parsingSuccessCallback: () => void
 
     public constructor(parsingSuccessCallback: () => void) {
-        super();
         this._parsingSuccessCallback = parsingSuccessCallback;
     }
 
-    public async parse(fileId: string, store: DatabaseStore): Promise<void> {
-        this._fileId = fileId;
-        this._store = store;
-
-        let response: { structure: Tags } = await this._store.getFile(this._fileId);
+    public async parse(): Promise<void> {
+        let response: { structure: Tags } = await DatabaseStore.getFile(DatabaseStore.fileId);
         this._tags = response.structure;
 
         if (!this._tags) {
-            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                this._store.config.onParsingError(`no tags were found for file id - ${this._fileId}!`);
+            if (DatabaseStore.config.onParsingError && typeof DatabaseStore.config.onParsingError === "function") {
+                DatabaseStore.config.onParsingError(`no tags were found for file id - ${DatabaseStore.fileId}!`);
             }
         }
 
         this._getRootNode();
 
         if (!this._rootNode) {
-            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                this._store.config.onParsingError(`no root node found for file id - ${this._fileId}!`);
+            if (DatabaseStore.config.onParsingError && typeof DatabaseStore.config.onParsingError === "function") {
+                DatabaseStore.config.onParsingError(`no root node found for file id - ${DatabaseStore.fileId}!`);
             }
         }
 
         this._nodes = [];
 
-        this._processNodes(this._store.config.bucketSize - 50);
+        this._processNodes(DatabaseStore.config.bucketSize - 50);
     }
 
     private _getRootNode(): void {
@@ -73,18 +68,18 @@ class NodeParser extends Base {
         try {
             // paginated response using limit and count
             let response: { chunks: Array<{ chunk: string }>, count: number };
-            response = await this._store.getChunks(this._fileId, limit, skip);
+            response = await DatabaseStore.getChunks(DatabaseStore.fileId, limit, skip);
 
             // check if no response, stop processing and save tags here
             if (!response || !response.chunks || !response.chunks.length) {
                 if (this._nodes && this._nodes.length) {
-                    let nodeCount: number = await this._store.addNodes(this._fileId, this._nodes);
-                    if (!!this._store.config.onNodesParsed && typeof this._store.config.onNodesParsed === "function") {
-                        this._store.config.onNodesParsed(nodeCount);
+                    let nodeCount: number = await DatabaseStore.addNodes(DatabaseStore.fileId, this._nodes);
+                    if (!!DatabaseStore.config.onNodesParsed && typeof DatabaseStore.config.onNodesParsed === "function") {
+                        DatabaseStore.config.onNodesParsed(nodeCount);
                     }
                 }
-                if (this._store.config.onNodeParsingSuccess && typeof this._store.config.onNodeParsingSuccess === "function") {
-                    this._store.config.onNodeParsingSuccess();
+                if (DatabaseStore.config.onNodeParsingSuccess && typeof DatabaseStore.config.onNodeParsingSuccess === "function") {
+                    DatabaseStore.config.onNodeParsingSuccess();
                 }
                 if (this._parsingSuccessCallback && typeof this._parsingSuccessCallback === "function") {
                     this._parsingSuccessCallback();
@@ -99,22 +94,22 @@ class NodeParser extends Base {
             this._remainingChunkText = "";
             await this._parseNodes(chunkText);
 
-            this._processNodes(this._store.config.bucketSize, skip + limit)
+            this._processNodes(DatabaseStore.config.bucketSize, skip + limit)
 
         } catch (error) {
             console.error(error);
-            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                this._store.config.onParsingError(error);
+            if (DatabaseStore.config.onParsingError && typeof DatabaseStore.config.onParsingError === "function") {
+                DatabaseStore.config.onParsingError(error);
             }
         }
     }
 
     private async _parseNodes(chunkText: string): Promise<any> {
 
-        if (this._nodes.length === this._store.config.bucketSize - 50) {
-            let nodeCount: number = await this._store.addNodes(this._fileId, this._nodes);
-            if (!!this._store.config.onNodesParsed && typeof this._store.config.onNodesParsed === "function") {
-                this._store.config.onNodesParsed(nodeCount);
+        if (this._nodes.length === DatabaseStore.config.bucketSize - 50) {
+            let nodeCount: number = await DatabaseStore.addNodes(DatabaseStore.fileId, this._nodes);
+            if (!!DatabaseStore.config.onNodesParsed && typeof DatabaseStore.config.onNodesParsed === "function") {
+                DatabaseStore.config.onNodesParsed(nodeCount);
             }
             this._nodes = [];
         }
@@ -149,8 +144,8 @@ class NodeParser extends Base {
             xmlNode = xmlNode[this._rootNode];
             this._nodes.push(xmlNode);
         } catch (error) {
-            if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                this._store.config.onParsingError({ node: node, error: error, message: "invalid XML node found! Check error for details." });
+            if (DatabaseStore.config.onParsingError && typeof DatabaseStore.config.onParsingError === "function") {
+                DatabaseStore.config.onParsingError({ node: node, error: error, message: "invalid XML node found! Check error for details." });
             }
         }
         chunkText = chunkText.slice(endIndex);

@@ -7,27 +7,35 @@ import { ObjectID } from "bson";
 import { NodeSchemaInstance } from "./node.schema";
 
 class DatabaseStore {
-
-    private _file: Model<Document>;
-    private _chunk: Model<Document>;
-    private _node: Model<Document>;
-    private _config: XtreamerConfig;
-    public get config(): XtreamerConfig {
+    
+    private static _config: XtreamerConfig;
+    private static _fileId: string;
+    private static _fileUrl: string;
+    private static _file: Model<Document>;
+    private static _chunk: Model<Document>;
+    private static _node: Model<Document>;
+    public static get config() : XtreamerConfig {
         return this._config;
     }
-
-    public connect(config: XtreamerConfig): Promise<void> {
-        if (!!this._config) {
-            return Promise.resolve();
-        }
-        return this._validate(config)
-            .then(() => { return this._connect() })
-            .catch((error: Error) => {
-                return Promise.reject(error)
-            });
+    public static get fileId() : string {
+        return this._fileId;
+    }
+    public static get fileUrl() : string {
+        return this._fileUrl;
     }
 
-    public getFile(fileId: string): Promise<any> {
+    public static async init(config: XtreamerConfig, fileUrl: string): Promise<void> {
+        try {
+            this._fileUrl = fileUrl;
+            await this._validate(config);
+            await this._connect();
+            return Promise.resolve();
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    public static getFile(fileId: string): Promise<any> {
         return this._file.findOne({ _id: fileId }, { _id: 0, structure: 1 })
             .then((response: Document) => {
                 return Promise.resolve(response)
@@ -37,16 +45,18 @@ class DatabaseStore {
             });
     }
 
-    public addFile(url: string): Promise<string> {
+    public static addFile(url: string): Promise<string> {
         return this._file.findOne({ url: url })
             .then(async (doc: Document) => {
                 if (!!doc) {
+                    this._fileId = doc._id.toString();
                     await this.dropChunkCollection(doc._id.toString());
                     await this.dropNodeCollection(doc._id.toString());
                     return Promise.resolve(doc._id.toString());
                 }
                 return this._file.create({ url: url })
                     .then((doc: Document) => {
+                        this._fileId = doc._id.toString();
                         return Promise.resolve(doc._id.toString());
                     })
                     .catch((error: Error) => {
@@ -58,7 +68,7 @@ class DatabaseStore {
             });
     }
 
-    public updateFile(id: string, params: { [key: string]: any }): Promise<string> {
+    public static updateFile(id: string, params: { [key: string]: any }): Promise<string> {
         return this._file
             .findOneAndUpdate({ _id: new ObjectID(id)}, params)
             .then((doc: Document) => {
@@ -69,7 +79,7 @@ class DatabaseStore {
             });
     }
 
-    public removeFile(id: string): Promise<void> {
+    public static removeFile(id: string): Promise<void> {
         return this._file.findByIdAndRemove(new ObjectID(id))
             .then(() => {
                 return this.dropChunkCollection(id)
@@ -85,7 +95,7 @@ class DatabaseStore {
             });
     }
 
-    public addChunks(fileId: string, chunks: Array<string>): Promise<number> {
+    public static addChunks(fileId: string, chunks: Array<string>): Promise<number> {
         this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         const chunkDocs = chunks.reduce((chunkDocs: Array<any>, chunk: string) => {
             chunkDocs.push({
@@ -103,7 +113,7 @@ class DatabaseStore {
             });
     }
 
-    public getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<{ chunk: string }>, count: number }> {
+    public static getChunks(fileId: string, limit: number = 10, skip: number = 0): Promise<{ chunks: Array<{ chunk: string }>, count: number }> {
         try {
             this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
             return this._chunk
@@ -131,7 +141,7 @@ class DatabaseStore {
         }
     }
 
-    public async dropChunkCollection(fileId: string): Promise<void> {
+    public static async dropChunkCollection(fileId: string): Promise<void> {
         this._chunk = ChunkSchemaInstance(fileId, this._config.chunkCollectionPrefix);
         let list: Array<any> = await this._chunk.db.db.listCollections({ name: this._chunk.collection.name }).toArray();
         if (!list || !list.length) {
@@ -142,7 +152,7 @@ class DatabaseStore {
             .catch((error: Error) => { return Promise.reject(error) });
     }
 
-    public addNodes(fileId: string, nodes: Array<any>): Promise<number> {
+    public static addNodes(fileId: string, nodes: Array<any>): Promise<number> {
         this._node = NodeSchemaInstance(fileId, this._config.nodeCollectionPrefix);
         const nodeDocs: Array<any> = nodes.reduce((nodeDocs: Array<any>, node: any) => {
             nodeDocs.push({
@@ -161,7 +171,7 @@ class DatabaseStore {
             });
     }
 
-    public async dropNodeCollection(fileId: string): Promise<void> {
+    public static async dropNodeCollection(fileId: string): Promise<void> {
         this._node = NodeSchemaInstance(fileId, this._config.nodeCollectionPrefix);
         let list: Array<any> = await this._node.db.db.listCollections({ name: this._node.collection.name }).toArray();
         if (!list || !list.length) {
@@ -174,7 +184,7 @@ class DatabaseStore {
 
     //#region Private Methods
 
-    private _validate(config: XtreamerConfig): Promise<void> {
+    private static _validate(config: XtreamerConfig): Promise<void> {
         if (!config) {
             return Promise.reject("xtreamer config not provided!");
         }
@@ -186,24 +196,24 @@ class DatabaseStore {
         config.chunkCollectionPrefix = !!config.chunkCollectionPrefix && !!config.chunkCollectionPrefix.trim() ? config.chunkCollectionPrefix.trim() : CHUNK_COLLECTION_PREFIX;
         config.nodeCollectionPrefix = !!config.nodeCollectionPrefix && !!config.nodeCollectionPrefix.trim() ? config.nodeCollectionPrefix.trim() : NODES_COLLECTION_PREFIX;
         config.bucketSize = isNaN(config.bucketSize) && config.bucketSize > 0 ? config.bucketSize : BUCKET_SIZE;
-        this._config = config;
+        DatabaseStore._config = config;
         return Promise.resolve();
     }
 
-    private _connect(): Promise<void> {
-        return connect(`${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`)
+    private static _connect(): Promise<void> {
+        return connect(`${DatabaseStore._config.dbUrl.trim()}/${DatabaseStore._config.dbName.trim()}`)
             .then(() => {
-                this._file = FileSchemaInstance(this._config.fileCollectionName);
-                if (this._config.onDatabaseConnectionSuccess && typeof this._config.onDatabaseConnectionSuccess === "function") {
-                    this._config.onDatabaseConnectionSuccess();
+                this._file = FileSchemaInstance(DatabaseStore._config.fileCollectionName);
+                if (DatabaseStore._config.onDatabaseConnectionSuccess && typeof DatabaseStore._config.onDatabaseConnectionSuccess === "function") {
+                    DatabaseStore._config.onDatabaseConnectionSuccess();
                 }
                 return Promise.resolve();
             })
             .catch((error: Error) => {
-                if (this._config.onDatabaseConnectionError && typeof this._config.onDatabaseConnectionError === "function") {
-                    this._config.onDatabaseConnectionError(error);
+                if (DatabaseStore._config.onDatabaseConnectionError && typeof DatabaseStore._config.onDatabaseConnectionError === "function") {
+                    DatabaseStore._config.onDatabaseConnectionError(error);
                 }
-                return Promise.reject(`could not connect to ${this._config.dbUrl.trim()}/${this._config.dbName.trim()}`);
+                return Promise.reject(`could not connect to ${DatabaseStore._config.dbUrl.trim()}/${DatabaseStore._config.dbName.trim()}`);
             });
     }
 

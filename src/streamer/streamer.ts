@@ -1,10 +1,9 @@
 import { get, Request } from "request";
-import { Base } from "../storage/base.model";
 import { DatabaseStore } from "../storage/database.store";
 import { IncomingMessage } from "http";
 import { Transform, TransformCallback } from "stream";
 
-class Streamer extends Base {
+class Streamer {
 
     private _chunks: Array<string> = [];
     private _buffer: Request;
@@ -12,15 +11,11 @@ class Streamer extends Base {
     private _streamingSuccessCallback: () => void;
 
     public constructor(streamingSuccessCallback: () => void) {
-        super();
         this._streamingSuccessCallback = streamingSuccessCallback;
     }
 
-    public stream(fileUrl: string, fileId: string, store: DatabaseStore): void {
-        this._store = store;
-        this._fileId = fileId;
-        this._fileUrl = fileUrl;
-        get(this._fileUrl)
+    public stream(): void {
+        get(DatabaseStore.fileUrl)
             .on("complete", (response: any) => this._onStreamComplete(response))
             .on("error",  (error: any) => this._onStreamError(error))
             .pipe(this.buildTransform());
@@ -30,7 +25,7 @@ class Streamer extends Base {
         if (!!this._transform) {
             return;
         }
-        let that = this;
+        const that: Streamer = this;
         this._transform = new Transform({ objectMode: true });
         this._transform._transform = async function(chunk: Buffer, encoding: string, callback: TransformCallback) {
             await that._onStreamData(chunk);
@@ -41,19 +36,19 @@ class Streamer extends Base {
 
     private async _onStreamComplete(response: IncomingMessage): Promise<void> {
         if (response.statusCode !== 200) {
-            this._store.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
-            this._store.removeFile(this._fileId);
+            DatabaseStore.config.onStreamingError(`Error while reading file, error code - [${response.statusMessage}] - ${response.statusCode}`);
+            DatabaseStore.removeFile(DatabaseStore.fileId);
             return;
         }
         //if final bucket is not full save remaining chunks here
         await this._insertChunks(this._chunks);
-        this._store.updateFile(this._fileId, {
+        DatabaseStore.updateFile(DatabaseStore.fileId, {
             is_processed: true,
             file_size: parseInt(response.headers["content-length"] || "0") || 0
         });
         //call success callback function, if provided.
-        if (!!this._store.config.onStreamingSuccess && typeof this._store.config.onStreamingSuccess === "function") {
-            this._store.config.onStreamingSuccess(this._fileId);
+        if (!!DatabaseStore.config.onStreamingSuccess && typeof DatabaseStore.config.onStreamingSuccess === "function") {
+            DatabaseStore.config.onStreamingSuccess(DatabaseStore.fileId);
         }
         //callback for stream parser
         if (!!this._streamingSuccessCallback && typeof this._streamingSuccessCallback === "function") {
@@ -64,7 +59,7 @@ class Streamer extends Base {
     private async _onStreamData(chunk: Buffer): Promise<void> {
         this._chunks = this._chunks || [];
         this._chunks.push(chunk.toString());
-        if (this._chunks.length >= this._store.config.bucketSize) {
+        if (this._chunks.length >= DatabaseStore.config.bucketSize) {
             await this._insertChunks(this._chunks);
             this._chunks = [];
         }
@@ -75,10 +70,10 @@ class Streamer extends Base {
         //destroy the buffer and stop processing
         // this._buffer.destroy();
         //rollback the database changes
-        this._store.removeFile(this._fileId);
+        DatabaseStore.removeFile(DatabaseStore.fileId);
         //call error callback function, if provided.
-        if (!!this._store.config.onStreamingError && typeof this._store.config.onStreamingError === "function") {
-            this._store.config.onStreamingError(error);
+        if (!!DatabaseStore.config.onStreamingError && typeof DatabaseStore.config.onStreamingError === "function") {
+            DatabaseStore.config.onStreamingError(error);
         }
     }
 
@@ -87,10 +82,10 @@ class Streamer extends Base {
             return Promise.resolve();
         }
         //keep sending the processed data through the callback function, if provided.
-        return this._store.addChunks(this._fileId, chunks)
+        return DatabaseStore.addChunks(DatabaseStore.fileId, chunks)
             .then((chunkCount: number) => {
-                if (!!this._store.config.onChunksProcesed && typeof this._store.config.onChunksProcesed === "function") {
-                    this._store.config.onChunksProcesed(chunkCount);
+                if (!!DatabaseStore.config.onChunksProcesed && typeof DatabaseStore.config.onChunksProcesed === "function") {
+                    DatabaseStore.config.onChunksProcesed(chunkCount);
                 }
                 return Promise.resolve();
             })
