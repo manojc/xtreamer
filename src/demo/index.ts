@@ -71,7 +71,7 @@ function onDatabaseConnectionError(error: any) {
         onParsingError: onParsingError
     };
     new Xtreamer().
-        init(FILES.url82Mb, config)
+        init(FILES.url23Mb, config)
         .then(() => console.log(`streaming started!`))
         .catch((error: any) => console.error(error));
 })();

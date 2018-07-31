@@ -124,6 +124,8 @@ class NodeParser extends Base {
             return;
         }
 
+        const nodeMatcher = new RegExp(`<${this._rootNode}( |>)(.*)</${this._rootNode}>`);
+        
         let startIndex: number = chunkText.indexOf(`<${this._rootNode}`);
         let endIndex: number = chunkText.indexOf(`</${this._rootNode}>`);
 
@@ -146,14 +148,12 @@ class NodeParser extends Base {
         try {
             xmlNode = await this.xml2jsparser(node);
             xmlNode = xmlNode[this._rootNode];
+            this._nodes.push(xmlNode);
         } catch (error) {
             if (this._store.config.onParsingError && typeof this._store.config.onParsingError === "function") {
-                this._store.config.onParsingError(error);
+                this._store.config.onParsingError({ node: node, error: error, message: "invalid XML node found! Check error for details." });
             }
-            return;
         }
-
-        this._nodes.push(xmlNode);
         chunkText = chunkText.slice(endIndex);
         return await this._parseNodes(chunkText);
     }
