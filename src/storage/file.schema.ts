@@ -26,6 +26,9 @@ const XtreamerFileSchema = new Schema({
         type: Schema.Types.Boolean,
         default: false
     },
+    root_node: {
+        type: Schema.Types.String
+    },
     structure : {
         type: Schema.Types.Mixed,
         default: null

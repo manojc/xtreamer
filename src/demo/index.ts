@@ -4,6 +4,21 @@ import { FILES } from "./files";
 
 let count = 0;
 
+const config: XtreamerConfig = {
+    dbUrl: "mongodb://localhost",
+    chunkOffset: 2,
+    onDatabaseConnectionSuccess: onDatabaseConnectionSuccess,
+    onDatabaseConnectionError: onDatabaseConnectionError,
+    onChunksProcesed: onChunkProcesed,
+    onChunksParsed: onChunksParsed,
+    onNodesParsed: onNodesParsed,
+    onStreamingSuccess: onStreamingSuccess,
+    onStreamingError: onStreamingError,
+    onChunkParsingSuccess: onChunkParsingSuccess,
+    onNodeParsingSuccess: onNodeParsingSuccess,
+    onParsingError: onParsingError
+};
+
 function onChunkProcesed(chunkCount: number): void {
     count += chunkCount;
     console.log(`total chunks processed ${count}`);
@@ -24,11 +39,13 @@ function onNodesParsed(nodeCount: number): void {
 }
 
 function onStreamingSuccess(fileId: string): void {
+    count = 0;
     console.log(`file streaming finished - ${fileId}`);
     console.log(`starting chunk parsing...`);
 }
 
 function onStreamingError(error: any): void {
+    count = 0;
     console.error(`error occurred!!`, error);
 }
 
@@ -55,23 +72,4 @@ function onDatabaseConnectionError(error: any) {
     console.error("database connection error!!", error);
 }
 
-(() => {
-    let config: XtreamerConfig = {
-        dbUrl: "mongodb://localhost",
-        chunkOffset: 2,
-        onDatabaseConnectionSuccess: onDatabaseConnectionSuccess,
-        onDatabaseConnectionError: onDatabaseConnectionError,
-        onChunksProcesed: onChunkProcesed,
-        onChunksParsed: onChunksParsed,
-        onNodesParsed: onNodesParsed,
-        onStreamingSuccess: onStreamingSuccess,
-        onStreamingError: onStreamingError,
-        onChunkParsingSuccess: onChunkParsingSuccess,
-        onNodeParsingSuccess: onNodeParsingSuccess,
-        onParsingError: onParsingError
-    };
-    new Xtreamer()
-        .init(FILES.url23Mb, config)
-        .then(() => console.log(`streaming started!`))
-        .catch((error: any) => console.error(error));
-})();
+(() => new Xtreamer().init(FILES.URL582Mb, config).then(() => console.log(`streaming started!`)).catch((error: any) => console.error(error)))();

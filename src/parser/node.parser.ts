@@ -32,6 +32,8 @@ class NodeParser {
             }
         }
 
+        await DatabaseStore.updateFile(DatabaseStore.fileId, { root_node: this._rootNode });
+
         this._nodes = [];
 
         this._processNodes(DatabaseStore.config.bucketSize - 50);
