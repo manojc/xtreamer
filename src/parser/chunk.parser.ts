@@ -59,6 +59,7 @@ class ChunkParser {
         let openingTagOpeningBracketIndex: number = -1;
         let closingTagOpeningBracketIndex: number = 0;
         let isCData: boolean = false;
+        let isComment: boolean = false;
         let exitLoop: boolean = false;
 
         return chunkText.split('').reduce((tags: Tags, currentChar: string, index: number, array: Array<string>) => {
@@ -75,7 +76,15 @@ class ChunkParser {
                 isCData = false;
             }
 
-            if (isCData) {
+            else if (currentChar === "<" && array[index + 1] === '!' && array[index + 2] === '-' && array[index + 3] === '-') {
+                isComment = true;
+            }
+
+            else if (currentChar === ">" && array[index - 1] === '-' && array[index - 2] === '-') {
+                isComment = false;
+            }
+
+            if (isCData || isComment) {
                 return tags;                
             }
 
