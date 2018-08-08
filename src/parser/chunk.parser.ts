@@ -32,7 +32,7 @@ class ChunkParser {
             }
 
             let lastChunkStartIndex: number = 0;
-            
+
             let chunkText: string = response.chunks.reduce((chunkString: string, chunkObj: { chunk: string }, index: number) => {
                 if (response.chunks.length - DatabaseStore.config.chunkOffset === index) {
                     lastChunkStartIndex = chunkString.length;
@@ -40,7 +40,7 @@ class ChunkParser {
                 chunkString += chunkObj.chunk;
                 return chunkString;
             }, "");
-            
+
             this._tags = this._parseTags(chunkText, lastChunkStartIndex, skip + limit >= response.count);
 
             if (DatabaseStore.config.onChunksParsed && typeof DatabaseStore.config.onChunksParsed === "function") {
@@ -58,24 +58,37 @@ class ChunkParser {
     private _parseTags(chunkText: string, lastChunkStartIndex: number, isLastIteration: boolean): Tags {
         let openingTagOpeningBracketIndex: number = -1;
         let closingTagOpeningBracketIndex: number = 0;
+        let isCData: boolean = false;
         let exitLoop: boolean = false;
 
         return chunkText.split('').reduce((tags: Tags, currentChar: string, index: number, array: Array<string>) => {
-            
+
             if (this._indexToStartFrom > index || (exitLoop && !isLastIteration)) {
                 return tags;
             }
 
-            if (currentChar === "<" && array[index + 1] === '/') {
+            else if (currentChar === "<" && array[index + 1] === '!' && array[index + 2] === '[') {
+                isCData = true;
+            }
+
+            else if (currentChar === ">" && array[index - 1] === ']' && array[index - 2] === ']') {
+                isCData = false;
+            }
+
+            if (isCData) {
+                return tags;                
+            }
+
+            else if (currentChar === "<" && array[index + 1] === '/') {
                 closingTagOpeningBracketIndex = index;
                 openingTagOpeningBracketIndex = -1;
-            } 
-            
+            }
+
             else if (currentChar === "<" && array[index + 1] !== '/') {
                 openingTagOpeningBracketIndex = index;
                 closingTagOpeningBracketIndex = 0;
-            } 
-            
+            }
+
             else if ((currentChar === ">" || currentChar === " ") && openingTagOpeningBracketIndex >= 0) {
                 let name: string = chunkText.substring(
                     openingTagOpeningBracketIndex + 1, index
@@ -123,10 +136,10 @@ class ChunkParser {
     }
 
     private _onParsingSuccess(): void {
-        if (DatabaseStore.config.onChunkParsingSuccess && typeof DatabaseStore.config.onChunkParsingSuccess ===  "function") {
+        if (DatabaseStore.config.onChunkParsingSuccess && typeof DatabaseStore.config.onChunkParsingSuccess === "function") {
             DatabaseStore.config.onChunkParsingSuccess();
         }
-        if (this._parsingSuccessCallback && typeof this._parsingSuccessCallback ===  "function") {
+        if (this._parsingSuccessCallback && typeof this._parsingSuccessCallback === "function") {
             this._parsingSuccessCallback();
         }
     }
