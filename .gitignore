@@ -60,8 +60,8 @@ typings/
 # next.js build output
 .next
 
-# compiled javascript
-dist/
+# demo
+i=dist/demo
 
 # data directories
 data/
