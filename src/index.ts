@@ -1,6 +1,8 @@
 import { Xtreamer } from "./xtreamer";
-import { XtreamerConfig } from "./xtreamer.config";
+import { XtreamerConfig as Config } from "./xtreamer.config";
 
-export function initXtreamer(fileUrl:string, config: XtreamerConfig): Xtreamer {
+export const XtreamerConfig: Config = new Config();
+
+export function initXtreamer(fileUrl: string, config: Config): Xtreamer {
     return new Xtreamer().init(fileUrl, config);
 }
