@@ -1,5 +1,5 @@
-import { Xtreamer } from "../index";
-import { XtreamerConfig } from "../streamer/streamer.config";
+import { initXtreamer } from "../index";
+import { XtreamerConfig } from "../xtreamer.config";
 import { FILES } from "./files";
 
 let count = 0;
@@ -72,4 +72,7 @@ function onDatabaseConnectionError(error: any) {
     console.error("database connection error!!", error);
 }
 
-(() => new Xtreamer().init(FILES.URL582Mb, config).then(() => console.log(`streaming started!`)).catch((error: any) => console.error(error)))();
+(() => { 
+    const streamer = initXtreamer(FILES.URL582Mb, config);
+    streamer.start();
+})();

@@ -1,5 +1,5 @@
 import { Schema, model, Model, Document } from "mongoose";
-import { CHUNK_COLLECTION_PREFIX } from "../streamer/streamer.config";
+import { CHUNK_COLLECTION_PREFIX } from "../xtreamer.config";
 
 const XtreamerChunkSchema = new Schema({
     file_id: {

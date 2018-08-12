@@ -1,5 +1,5 @@
 import { Schema, model, Model, Document } from "mongoose";
-import { NODES_COLLECTION_PREFIX } from "../streamer/streamer.config";
+import { NODES_COLLECTION_PREFIX } from "../xtreamer.config";
 
 const XtreamerNodeSchema = new Schema({
     file_id: {
