@@ -3,6 +3,22 @@
 
 > This package is currently in beta phase.
 
+## Why Xtreamer ?
+
+Hello Everyone! Before explaining how `streamer` works, let's understand the appropriate use cases where it should be used to make it a correct choice.
+
+Although `xtreamer`allows processing large `XML` files, there are some limitations to this package which might restrict the use to specific situations. As per my research, there are a lot of `npm packages` which are able to do `xml to JSON` processing using streams (which is exactly what `xtreamer` is doing). The only drawback about those packages is they ask for the repeating node in the `XML` structure which allows them to parse the `XML` in chinks. This becomes a problem if incoming `XML` file has unpredictable structure. (I might not be aware of some packages which are already doing it)
+
+This is where `xtreamer` comes to the rescue. It reads the file in chunks and figure outs the `XML` structure & possible repeating node as well.
+
+Considering above points `xtreamer` might not be helpful in certain scenarios. It includes -
+
+- `XML` files with no repeating nodes.
+
+- `XML` files with randomly repeating multiple nodes.
+
+However, future releases might provide this support.
+
 ## Introduction
 
 `xtreamer` is a node package used to download and convert large `XML` files in `JSON` format. The main aim of this package is to download the `XML` file in chunks using `streams` so that node applications will not go out of memory while processing large files.
