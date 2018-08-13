@@ -5,7 +5,7 @@
 
 ## Why Xtreamer ?
 
-Hello Everyone! Before explaining how `streamer` works, let's understand the appropriate use cases where it should be used to make it a correct choice.
+Hello Everyone! Before explaining how `xtreamer` works, let's understand the appropriate use cases where it should be used to make it a correct choice.
 
 Although `xtreamer`allows processing large `XML` files, there are some limitations to this package which might restrict the use to specific situations. As per my research, there are a lot of `npm packages` which are able to do `xml to JSON` processing using streams (which is exactly what `xtreamer` is doing). The only drawback about those packages is they ask for the repeating node in the `XML` structure which allows them to parse the `XML` in chinks. This becomes a problem if incoming `XML` file has unpredictable structure. (I might not be aware of some packages which are already doing it)
 
