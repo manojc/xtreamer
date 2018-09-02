@@ -4,7 +4,7 @@
     "description": "A NodeJS package to read XML files using NodeJS streams.",
     "main": "lib/index.js",
     "scripts": {
-        "start": "npm run tsc && npm run pm2 && npm run tscw"
+        "start": "node ./demo/demo.js"
     },
     "repository": {
         "type": "git",
