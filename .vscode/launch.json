@@ -6,11 +6,12 @@
             "request": "launch",
             "name": "Xstremer Server",
             "sourceMaps": true,
-            "program": "${workspaceFolder}/dist/demo/index.js",
+            "program": "${workspaceFolder}/demo/demo.js",
             "skipFiles": [
                 "node_modules/**/*.js"
             ],
-            "console": "internalConsole"
+            "console": "internalConsole",
+            "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node"
         }
     ]
 }
