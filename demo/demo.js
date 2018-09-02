@@ -1,27 +1,15 @@
-const fs = require("fs");
 const request = require("request");
 const Xtreamer = require("../lib/index");
 
-const options = {
-    node: "dataset",
-    emitXml: true
-}
-
+const url = "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml";
 let count = 0;
-Xtreamer(request.get("http://192.168.1.84:8080/23mb.xml"), options)
-// Xtreamer(request.get("http://192.168.1.84:8080/boats.xml"), options)
+
+request.get(url).pipe(Xtreamer("ProteinEntry"))
     .on("xmldata", (data) => {
         if (++count % 1000 === 0) {
             console.log(count);
         }
     })
-    .on("end", (data) => {
-        console.log(count);
-        // console.log(data);
-    })
-    .on("close", () => {
-        console.log("stream closed!");
-    })
-    .on("error", (error) => {
-        console.log("error occurred!", error);
-    });
+    .on("end", (data) => { console.log(count); })
+    .on("close", () => { })
+    .on("error", (error) => { });
