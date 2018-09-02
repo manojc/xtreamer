@@ -2,13 +2,9 @@
     "name": "xtreamer",
     "version": "0.0.8",
     "description": "A NodeJS package to read XML files using NodeJS streams.",
-    "main": "dist/index.js",
+    "main": "lib/index.js",
     "scripts": {
-        "start": "npm run tsc && npm run pm2 && npm run tscw",
-        "test": "npm run test",
-        "pm2": "./node_modules/pm2/bin/pm2 start apps.json",
-        "tsc": "./node_modules/typescript/bin/tsc",
-        "tscw": "./node_modules/typescript/bin/tsc --watch"
+        "start": "node ./demo/demo.js"
     },
     "repository": {
         "type": "git",
@@ -26,18 +22,10 @@
     },
     "homepage": "https://github.com/manojc/xtreamer#readme",
     "dependencies": {
-        "fs": "0.0.1-security",
-        "mongoose": "^5.1.5",
-        "request": "^2.87.0",
-        "stream": "0.0.2",
-        "xml2js": "^0.4.19"
+        "stream": "0.0.2"
     },
     "devDependencies": {
-        "@types/mongoose": "^5.0.16",
-        "@types/node": "^10.3.0",
-        "@types/request": "^2.47.1",
-        "@types/xml2js": "^0.4.3",
-        "pm2": "^2.10.4",
-        "typescript": "^2.9.2"
+        "fs": "0.0.1-security",
+        "request": "^2.88.0"
     }
 }
