@@ -7,6 +7,8 @@
     - [Events](#events)
         - [xmldata](#xmldata)
     - [Usage](#usage)
+    - [Demo](#demo)
+    - [Test](#test)
 - [Author](#author)
 
 # Xtreamer
@@ -67,15 +69,26 @@ const xtreamer = require("xtreamer");
 const url = "http://sampl-xml.com/sample.xml";
 let count = 0;
 
-request.get(url).pipe(xtreamer("XmlNode"))
-    .on("xmldata", (data) => {
-        if (++count % 1000 === 0) {
-            console.log(count);
-        }
-    })
-    .on("end", (data) => { console.log(count); })
+const streamer = Xtreamer("XmlNode")
+    .on("xmldata", (data) => ++count);
+
+request.get(url)
+    .on("end", (data) => console.log(count))
     .on("close", () => { })
-    .on("error", (error) => { });
+    .on("error", (error) => { })
+    .pipe(streamer);
+```
+
+## Demo
+
+```
+npm i && npm start
+```
+
+## Test
+
+```
+npm i && npm run test
 ```
 
 ---

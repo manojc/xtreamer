@@ -4,6 +4,22 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Mocha Tests",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u",
+                "tdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "${workspaceFolder}/test"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Xstremer Server",
             "sourceMaps": true,
             "program": "${workspaceFolder}/demo/demo.js",
