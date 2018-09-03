@@ -1,17 +1,19 @@
-- [Xtreamer](#xtreamer)
-    - [Background](#background)
-    - [Why Xtreamer ?](#why-xtreamer)
-    - [Install Package](#install-package)
-    - [APIs](#apis)
-        - [xtreamer( node : `string`, options?: `object` ) : stream.Transform](#xtreamer-node--string-options-object---streamtransform)
-    - [Events](#events)
-        - [xmldata](#xmldata)
-    - [Usage](#usage)
-    - [Demo](#demo)
-    - [Test](#test)
-- [Author](#author)
 
 # Xtreamer
+
+- [Xtreamer](#xtreamer)
+  - [Background](#background)
+  - [Why Xtreamer ?](#why-xtreamer)
+  - [Install Package](#install-package)
+  - [APIs](#apis)
+    - [xtreamer](#xtreamer-node--string-options-object---streamtransform)
+  - [Events](#events)
+    - [xmldata](#xmldata)
+  - [Options](#options)
+  - [Usage](#usage)
+  - [Exception Handling](#exception-handling)
+  - [Demo](#demo)
+  - [Test](#test)
 
 ## Background
 
@@ -50,13 +52,17 @@ This function return a transform stream which can be triggered by piping it with
 
 ## Events
 
-Apart from [default steam events](https://nodejs.org/api/stream.html#stream_event_close), `streamer` emits `xmldata` event to emit individual xml nodes.
-
 ### xmldata
+
+Apart from [default steam events](https://nodejs.org/api/stream.html#stream_event_close), `streamer` emits `xmldata` event to emit individual xml nodes.
 
 ```javascript
 xtreamer.on("xmldata", (data) => { });
 ```
+
+## Options
+
+Coming soon...
 
 ## Usage
 
@@ -73,15 +79,20 @@ let count = 0;
 const readStream = request.get(url)
     .on("end", (data) => console.log(count))
     .on("close", () => { })
-    .on("error", (error) => { });
+    .on("error", (error) => console.error(error));
 
 // xtreamer transform stream with custom event handler
 const xtreamerTransform = xtreamer("XmlNode")
-    .on("xmldata", (data) => ++count);
+    .on("xmldata", (data) => ++count)
+    .on("error", (error) => console.error(error));
 
 // input | transform
 readStream.pipe(xtreamerTransform);
 ```
+
+## Exception Handling
+
+Coming soon...
 
 ## Demo
 
