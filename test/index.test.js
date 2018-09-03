@@ -5,12 +5,8 @@ const { Constants } = require("../lib/util");
 
 describe("Xtreamer Tests", () => {
 
-    before(function (done) {
-        this.timeout(25000);
-        done();
-    })
-
     it("should throw error for empty node", function (done) {
+        this.timeout(15000);
         try {
             const xtream = xtreamer("");
         } catch (error) {
@@ -19,6 +15,7 @@ describe("Xtreamer Tests", () => {
     });
 
     it("should return 0 records for invalid node in small XML file (< 10 Mb)", function (done) {
+        this.timeout(15000);
         let count = 0;
         request.get("https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml")
             .on("end", () => {
@@ -33,6 +30,7 @@ describe("Xtreamer Tests", () => {
     });
 
     it("should trigger error event for invalid node in large XML file (> 10 Mb)", function (done) {
+        this.timeout(15000);
         request.get("https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/23mb.xml")
             .pipe(xtreamer("invalid-node")
                 .on("error", (error) => {
@@ -42,6 +40,7 @@ describe("Xtreamer Tests", () => {
     });
 
     it("should be able to parse small xml files (< 10 Mb)", function (done) {
+        this.timeout(15000);
         let count = 0;
         request.get("https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml")
             .on("end", () => {
@@ -56,6 +55,7 @@ describe("Xtreamer Tests", () => {
     });
 
     it("should be able to parse large xml files (> 10 Mb)", function (done) {
+        this.timeout(15000);
         let count = 0;
         request.get("https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/23mb.xml")
             .on("end", () => {
