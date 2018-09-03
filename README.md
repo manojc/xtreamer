@@ -12,7 +12,6 @@
   - [Options](#options)
     - [max_xml_size](#maxxmlsize--default---10000000)
   - [Usage](#usage)
-  - [Exception Handling](#exception-handling)
   - [Demo](#demo)
   - [Test](#test)
 
@@ -116,10 +115,6 @@ const xtreamerTransform = xtreamer(sampleNode)
 // input | transform
 readStream.pipe(xtreamerTransform);
 ```
-
-## Exception Handling
-
-Coming soon...
 
 ## Demo
 
