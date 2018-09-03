@@ -1,10 +1,8 @@
 {
     "apps": [
         {
-            "name": "xtreamer-api",
-            "script": "./dist/demo/index.js",
-            "env": {
-            }
+            "name": "xtreamer",
+            "script": "./demo/demo.js"
         }
     ]
 }

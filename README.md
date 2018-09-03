@@ -23,13 +23,13 @@ However, I came across few drawbacks regarding these packages explained in [this
 
 ## Why Xtreamer ?
 
-* One of the key points is `xtreamer` has zero dependencies.
+- One of the key points is `xtreamer` has `stream` as its only dependency.
 
-* As this package uses streams, the memory consumption will always be in control.
+- As this package uses streams, the memory consumption will always be in control.
 
-* `xtreamer` itself is an extension of a `Transform Stream` so it can be piped to any input `Readable Stream` and `xtreamer` output can be piped to a `Writable Stream`.
+- `xtreamer` itself is an extension of a `Transform Stream` so it can be piped to any input `Readable Stream` and `xtreamer` output can be piped to a `Writable Stream`.
 
-* Apart from above points, `xtreamer` provides XML nodes in response which ebalbes it to get hooked up with any `XML-JSON` parsing npm packages as per requirement.
+- Apart from above points, `xtreamer` provides XML nodes in response which enables it to get hooked up with any `XML-JSON` parsing npm packages as per requirement.
 
 ## Install Package
 
@@ -60,7 +60,7 @@ xtreamer.on("xmldata", (data) => { });
 
 ## Usage
 
-Use following code to import xtreamer and start it with default settings -
+Following code snippet uses `request` NPM package as input readable stream -
 
 ```javascript
 const request = require("request");
@@ -69,14 +69,18 @@ const xtreamer = require("xtreamer");
 const url = "http://sampl-xml.com/sample.xml";
 let count = 0;
 
-const streamer = Xtreamer("XmlNode")
-    .on("xmldata", (data) => ++count);
-
-request.get(url)
+// input readable stream with event handlers
+const readStream = request.get(url)
     .on("end", (data) => console.log(count))
     .on("close", () => { })
-    .on("error", (error) => { })
-    .pipe(streamer);
+    .on("error", (error) => { });
+
+// xtreamer transform stream with custom event handler
+const xtreamerTransform = xtreamer("XmlNode")
+    .on("xmldata", (data) => ++count);
+
+// input | transform
+readStream.pipe(xtreamerTransform);
 ```
 
 ## Demo
