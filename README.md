@@ -10,6 +10,7 @@
   - [Events](#events)
     - [xmldata](#xmldata)
   - [Options](#options)
+    - [max_xml_size](#maxxmlsize--default---10000000)
   - [Usage](#usage)
   - [Exception Handling](#exception-handling)
   - [Demo](#demo)
@@ -35,7 +36,9 @@ However, I came across few drawbacks regarding these packages explained in [this
 
 ## Install Package
 
-The package can be installed using following command **`npm i xtreamer`**
+```shell
+npm i xtreamer --save
+```
 
 ## APIs
 
@@ -57,12 +60,35 @@ This function return a transform stream which can be triggered by piping it with
 Apart from [default steam events](https://nodejs.org/api/stream.html#stream_event_close), `streamer` emits `xmldata` event to emit individual xml nodes.
 
 ```javascript
-xtreamer.on("xmldata", (data) => { });
+const xtreamer = require("xtreamer");
+
+const xtreamerTransform = xtreamer("XmlNode", options);
+
+// listening to `xmldata` event here
+xtreamerTransform.on("xmldata", (data) => { });
 ```
 
 ## Options
 
-Coming soon...
+### max_xml_size ( default - 10000000 )
+
+`max_xml_size` is maximum the number of characters allowed to hold in memory. 
+
+`xtreamer` raises an `error` event in case in memory xml string exceed specified limit. This ensures that the node process doesn't get terminated because of excess in memory data collection.
+
+Default value of this option restricts the amount of data held in memory to approximately 10Mb. Following snippet shows how to override default value -
+
+```javascript
+const xtreamer = require("xtreamer");
+
+// overriding `max_xml_size` value here
+const options = { max_xml_size: 30000000 };
+
+// passing `options` object as second parameter
+const xtreamerTransform = xtreamer("XmlNode", options);
+```
+
+Typically this value is not needed to override as in most of the cases, size of xml in a single xml node will not exceed 10Mb.
 
 ## Usage
 
@@ -72,17 +98,18 @@ Following code snippet uses `request` NPM package as input readable stream -
 const request = require("request");
 const xtreamer = require("xtreamer");
 
-const url = "http://sampl-xml.com/sample.xml";
+const sampleNode = "SampleNode"
+const sampleUrl = "http://sample-xml.com/sample.xml";
 let count = 0;
 
 // input readable stream with event handlers
-const readStream = request.get(url)
+const readStream = request.get(sampleUrl)
     .on("end", (data) => console.log(count))
     .on("close", () => { })
     .on("error", (error) => console.error(error));
 
 // xtreamer transform stream with custom event handler
-const xtreamerTransform = xtreamer("XmlNode")
+const xtreamerTransform = xtreamer(sampleNode)
     .on("xmldata", (data) => ++count)
     .on("error", (error) => console.error(error));
 
@@ -96,13 +123,13 @@ Coming soon...
 
 ## Demo
 
-```
+```shell
 npm i && npm start
 ```
 
 ## Test
 
-```
+```shell
 npm i && npm run test
 ```
 
