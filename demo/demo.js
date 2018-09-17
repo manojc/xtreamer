@@ -1,4 +1,3 @@
-const fs = require("fs");
 const request = require("request");
 const xtreamer = require("../lib/index");
 
@@ -12,13 +11,9 @@ const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/23mb
 
 let count = 0;
 
-const readStream = request.get(url)
-    .on("end", (data) => console.log(count))
-    .on("close", () => { })
-    .on("error", (error) => console.error(error));
-
 const xtreamerTransform = xtreamer(node)
-    .on("xmldata", (data) => ++count)
+    .on("data", () => ++count % 100 || console.log(count))
+    .on("end", () => console.log(count))
     .on("error", (error) => console.error(error));
 
-readStream.pipe(xtreamerTransform);
+request.get(url).pipe(xtreamerTransform);
