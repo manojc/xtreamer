@@ -22,7 +22,7 @@ describe("Xtreamer Tests", () => {
         const xtreamerTransform = xtreamer("invalid-node")
             .on("error", () => done());
         request.get(url).pipe(xtreamerTransform);
-    }).timeout(15000);
+    }).timeout(50000);
 
     it("should be able to parse files with large xml nodes with increased max_xml_size", (done) => {
         const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/12.5.xml";
@@ -31,7 +31,7 @@ describe("Xtreamer Tests", () => {
             .on("data", () => ++count)
             .on("end", () => { Assert.strictEqual(count, 1); done(); });
         request.get(url).pipe(xtreamerTransform);
-    }).timeout(25000);
+    }).timeout(50000);
 
     it("should be able to parse small xml files (< 10 Mb)", (done) => {
         const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml";
@@ -49,7 +49,7 @@ describe("Xtreamer Tests", () => {
             .on("data", () => ++count)
             .on("end", () => { Assert.strictEqual(count, 2435); done(); });
         request.get(url).pipe(xtreamerTransform);
-    }).timeout(25000);
+    }).timeout(50000);
 
     it("should emit data event for every xml node", (done) => {
         const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml";
