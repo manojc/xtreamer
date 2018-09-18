@@ -58,6 +58,8 @@ This function return a transform stream which can be triggered by piping it with
 
 Apart from [default steam events](https://nodejs.org/api/stream.html#stream_event_close), `streamer` emits `xmldata` event to emit individual xml nodes.
 
+> From version `0.1.3` onwards, `xtreamer` also supports the conventional `data` event to emit individual xml nodes.
+
 ```javascript
 const xtreamer = require("xtreamer");
 
@@ -65,6 +67,11 @@ const xtreamerTransform = xtreamer("XmlNode", options);
 
 // listening to `xmldata` event here
 xtreamerTransform.on("xmldata", (data) => { });
+
+// OR
+
+// `data` event also supported from version 0.1.3
+xtreamerTransform.on("data", (data) => { });
 ```
 
 ## Options
@@ -97,19 +104,17 @@ Following code snippet uses `request` NPM package as input readable stream -
 const request = require("request");
 const xtreamer = require("xtreamer");
 
-const sampleNode = "SampleNode"
+const sampleNode = "SampleNode";
 const sampleUrl = "http://sample-xml.com/sample.xml";
 let count = 0;
 
 // input readable stream with event handlers
-const readStream = request.get(sampleUrl)
-    .on("end", (data) => console.log(count))
-    .on("close", () => { })
-    .on("error", (error) => console.error(error));
+const readStream = request.get(sampleUrl);
 
 // xtreamer transform stream with custom event handler
 const xtreamerTransform = xtreamer(sampleNode)
-    .on("xmldata", (data) => ++count)
+    .on("data", () => ++count % 100 || console.log(count))
+    .on("end", () => console.log(count))
     .on("error", (error) => console.error(error));
 
 // input | transform
