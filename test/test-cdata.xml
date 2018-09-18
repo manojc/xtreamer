@@ -1,0 +1,17 @@
+<item_list>
+    <item>
+        <![CDATA[<item>item1</item>]]>
+    </item>
+    <item>
+        <![CDATA[<item>]]>
+    </item>
+    <item>
+        <![CDATA[</item>]]>
+    </item>
+    <item>
+        <![CDATA[<itemitem4]]>
+    </item>
+    <item>
+        <![CDATA[item5</item]]>
+    </item>
+</item_list>

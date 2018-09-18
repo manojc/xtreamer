@@ -1,3 +1,4 @@
+const fs = require("fs");
 const request = require("request");
 const Assert = require("chai").assert;
 const xtreamer = require("../lib/index");
@@ -58,5 +59,23 @@ describe("Xtreamer Tests", () => {
             .on("data", () => ++count)
             .on("end", () => { Assert.strictEqual(count, 2112); done(); });
         request.get(url).pipe(xtreamerTransform);
-    }).timeout(5000);;
+    }).timeout(5000);
+
+    it("should skip the <node> & </node> strings in comments", (done) => {
+        const filePath = `${__dirname}/test-comment.xml`;
+        let count = 0;
+        const xtreamerTransform = xtreamer("item")
+            .on("data", () => ++count)
+            .on("end", () => { Assert.strictEqual(count, 5); done(); });
+        fs.createReadStream(filePath).pipe(xtreamerTransform);
+    });
+
+    it("should skip the <node> & </node> strings in cdata", (done) => {
+        const filePath = `${__dirname}/test-cdata.xml`;
+        let count = 0;
+        const xtreamerTransform = xtreamer("item")
+            .on("data", () => ++count)
+            .on("end", () => { Assert.strictEqual(count, 5); done(); });
+        fs.createReadStream(filePath).pipe(xtreamerTransform);
+    });
 });

@@ -1,0 +1,22 @@
+<item_list>
+    <item>
+        <!-- <item>item1</item> -->
+        item1
+    </item>
+    <item>
+        <!-- <item> -->
+        item2
+    </item>
+    <item>
+        <!-- </item> -->
+        item3
+    </item>
+    <item>
+        <!-- <itemitem4 -->
+        item4
+    </item>
+    <item>
+        <!-- item5</item -->
+        item5
+    </item>
+</item_list>
