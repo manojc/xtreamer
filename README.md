@@ -14,9 +14,10 @@
   - [Test](#test)
 
 ## Release Notes V1.0.0
-- Handling to avoid repeating nodes in comments & cdata
+- Handling to avoid repeating nodes in comments & cdata.
 - Minor bug fixes and exception handling.
 - Unit tests to cover corner case scenarios.
+- No breaking changes.
 
 ## Background
 
