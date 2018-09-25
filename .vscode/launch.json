@@ -15,8 +15,8 @@
                 "${workspaceFolder}/test"
             ],
             "internalConsoleOptions": "openOnSessionStart",
-            // "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node",
-            "runtimeExecutable": "/home/localstars/.nvm/versions/node/v8.7.0/bin/node"
+            "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node",
+            // "runtimeExecutable": "/home/localstars/.nvm/versions/node/v8.7.0/bin/node"
         },
         {
             "type": "node",
@@ -28,8 +28,8 @@
                 "node_modules/**/*.js"
             ],
             "console": "internalConsole",
-            // "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node",
-            "runtimeExecutable": "/home/localstars/.nvm/versions/node/v8.7.0/bin/node"
+            "runtimeExecutable": "/home/kepler/.nvm/versions/node/v10.9.0/bin/node",
+            // "runtimeExecutable": "/home/localstars/.nvm/versions/node/v8.7.0/bin/node"
         }
     ]
 }
