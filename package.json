@@ -1,10 +1,6 @@
 {
     "name": "xtreamer",
-<<<<<<< HEAD
-    "version": "0.1.4",
-=======
     "version": "1.0.0",
->>>>>>> 2b199250e5416e1efb966e8ccfc5965c24f8830b
     "description": "A NodeJS package to read XML files using NodeJS streams.",
     "main": "lib/index.js",
     "scripts": {
