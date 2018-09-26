@@ -1,0 +1,8 @@
+{
+    "apps": [
+        {
+            "name": "apps.transformer.promise",
+            "script": "./demo/transformer-promise-demo.js"
+        }
+    ]
+}

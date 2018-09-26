@@ -2,6 +2,7 @@ const fs = require("fs");
 const request = require("request");
 const Assert = require("chai").assert;
 const xtreamer = require("../lib/index");
+const { transformer, transformerPromise } = require("./transformer");
 
 describe("Xtreamer Tests", () => {
 
@@ -86,5 +87,56 @@ describe("Xtreamer Tests", () => {
             .on("data", () => ++count)
             .on("end", () => { Assert.strictEqual(count, 5); done(); });
         fs.createReadStream(filePath).pipe(xtreamerTransform);
+    });
+
+    it("should trigger transformer function to use desired json converter", (done) => {
+        const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml";
+        let count = 0;
+        let item1;
+        const xtreamerTransform = xtreamer("course_listing", { transformer: transformer })
+            .on("data", (data) => {
+                if (++count === 1) {
+                    item1 = JSON.parse(data.toString());
+                }
+            })
+            .on("end", () => {
+                Assert.exists(item1.course_listing);
+                Assert.exists(item1.course_listing.section_listing);
+                Assert.strictEqual(item1.course_listing.section_listing.length, 2);
+                Assert.strictEqual(count, 2112);
+                done();
+            });
+        request.get(url).pipe(xtreamerTransform);
+    }).timeout(5000);
+
+    it("should trigger promisable transformer function to use desired json converter", (done) => {
+        const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml";
+        let count = 0;
+        let item1;
+        const xtreamerTransform = xtreamer("course_listing", { transformer: transformerPromise })
+            .on("data", (data) => {
+                if (++count === 1) {
+                    item1 = JSON.parse(data.toString());
+                }
+            })
+            .on("end", () => {
+                Assert.exists(item1.course_listing);
+                Assert.exists(item1.course_listing.section_listing);
+                Assert.strictEqual(item1.course_listing.section_listing.length, 2);
+                Assert.strictEqual(count, 2112);
+                done();
+            });
+        request.get(url).pipe(xtreamerTransform);
+    }).timeout(5000);
+
+    it("should throw error for invalid transformer function", (done) => {
+        const url = "https://raw.githubusercontent.com/manojc/xtagger/gh-pages/demo/2mb.xml";
+        let count = 0;
+        let item1;
+        const xtreamerTransform = xtreamer("course_listing", { transformer: (xml) => { throw Error("this is invalid function") } })
+            .on("error", (error) => {
+                done();
+            });
+        request.get(url).pipe(xtreamerTransform);
     });
 });

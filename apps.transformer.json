@@ -1,0 +1,8 @@
+{
+    "apps": [
+        {
+            "name": "xtreamer-transformer",
+            "script": "./demo/transformer-demo.js"
+        }
+    ]
+}

@@ -2,18 +2,21 @@
 # Xtreamer
 
 - [Xtreamer](#xtreamer)
-  - [Release Notes](#release-notes-v1.0.0)
   - [Background](#background)
   - [Why Xtreamer ?](#why-xtreamer)
   - [Install Package](#install-package)
   - [APIs](#apis)
-  - [Events](#events)
   - [Options](#options)
   - [Usage](#usage)
   - [Demo](#demo)
   - [Test](#test)
 
-## Release Notes V1.0.0
+## V1.1.0
+
+- Support for JSON transformer option ([demo](https://github.com/manojc/xtreamer/tree/master/demo))
+
+## V1.0.0
+
 - Handling to avoid repeating nodes in comments & cdata.
 - Minor bug fixes and exception handling.
 - Unit tests to cover corner case scenarios.
@@ -56,9 +59,7 @@ npm i xtreamer --save
 
 This function return a transform stream which can be triggered by piping it with any readable stream.
 
-## Events
-
-### xmldata
+### xmldata event
 
 Apart from [default steam events](https://nodejs.org/api/stream.html#stream_event_close), `streamer` emits `xmldata` event to emit individual xml nodes.
 
@@ -100,6 +101,18 @@ const xtreamerTransform = xtreamer("XmlNode", options);
 
 Typically this value is not needed to override as in most of the cases, size of xml in a single xml node will not exceed 10Mb.
 
+### transformer ( function(xmlString): jsonObj )
+
+> This feature is introduced in version 1.1.0
+
+The `transformer` option allows to transform the xml node output to desired JSON strucure by hooking it up with the streaming pipeline. **It becomes a very useful feature where JSON parser can be dynamically injected in `xtreamer`.**
+
+This function is supposed to accept an xml string as a parameter and should return converted valid JSON object in response. **The transformer function can also return a promise** which will be resolved by `xtreamer` before emitting `data` event.
+
+Note that the converted JSON is internally stringified before sending it back to in data event handler. So it is advised that the transformer function should always return valid JSON object in response.
+
+In case transformer function encounters an error, `xtreamer` emits `error` event and stops the xml conversion process.
+
 ## Usage
 
 Following code snippet uses `request` NPM package as input readable stream -
@@ -124,6 +137,42 @@ const xtreamerTransform = xtreamer(sampleNode)
 // input | transform
 readStream.pipe(xtreamerTransform);
 ```
+
+As `streamer` is a transform stream, one can also pipe the stream with other streams -
+
+```javascript
+const { Writable } = require("stream");
+const request = require("request");
+const xtreamer = require('xtreamer');
+
+class XtreamerClient extends Writable {
+    _write(chunk, encoding, next) {
+        // do stuff
+        next();
+    }
+}
+
+const sampleNode = "SampleNode";
+const sampleUrl = "http://sample-xml.com/sample.xml";
+
+// input readable stream
+const readStream = request.get(sampleUrl);
+
+// xtreamer transform stream with custom event handler
+const xtreamerTransform = xtreamer(sampleNode)
+    .on("error", (error) => console.error(error));
+
+// input | transform | write
+readStream.pipe(xtreamerTransform).pipe(new XtreamerClient());
+```
+
+Check the [demo](https://github.com/manojc/xtreamer/tree/master/demo) for more examples which includes -
+
+- demo.js - emits xml nodes
+
+- transformer-demo.js - emits stringified JSON & uses `xml-js` package within `transformer function`
+
+- transformer-promise-demo.js - emits stringified JSON & uses `xml-js` package within `transformer function` that return a promise.
 
 ## Demo
 
