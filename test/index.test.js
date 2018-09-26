@@ -59,7 +59,7 @@ describe("Xtreamer Tests", () => {
             .on("data", () => ++count)
             .on("end", () => { Assert.strictEqual(count, 2112); done(); });
         request.get(url).pipe(xtreamerTransform);
-    }).timeout(5000);
+    }).timeout(10000);
 
     it("should skip the <node> & </node> strings in comments", (done) => {
         const filePath = `${__dirname}/test-comment.xml`;
@@ -72,6 +72,15 @@ describe("Xtreamer Tests", () => {
 
     it("should skip the <node> & </node> strings in cdata", (done) => {
         const filePath = `${__dirname}/test-cdata.xml`;
+        let count = 0;
+        const xtreamerTransform = xtreamer("item")
+            .on("data", () => ++count)
+            .on("end", () => { Assert.strictEqual(count, 5); done(); });
+        fs.createReadStream(filePath).pipe(xtreamerTransform);
+    });
+
+    it("should skip the <node> & </node> strings in comments across multiple chunks", (done) => {
+        const filePath = `${__dirname}/test-comment-across-chunks.test.xml`;
         let count = 0;
         const xtreamerTransform = xtreamer("item")
             .on("data", () => ++count)

@@ -2,18 +2,22 @@
 # Xtreamer
 
 - [Xtreamer](#xtreamer)
+  - [Release Notes](#release-notes-v1.0.0)
   - [Background](#background)
   - [Why Xtreamer ?](#why-xtreamer)
   - [Install Package](#install-package)
   - [APIs](#apis)
-    - [xtreamer](#xtreamer-node--string-options-object---streamtransform)
   - [Events](#events)
-    - [xmldata](#xmldata)
   - [Options](#options)
-    - [max_xml_size](#maxxmlsize--default---10000000)
   - [Usage](#usage)
   - [Demo](#demo)
   - [Test](#test)
+
+## Release Notes V1.0.0
+- Handling to avoid repeating nodes in comments & cdata.
+- Minor bug fixes and exception handling.
+- Unit tests to cover corner case scenarios.
+- No breaking changes.
 
 ## Background
 
