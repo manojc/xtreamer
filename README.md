@@ -1,6 +1,8 @@
 
 # Xtreamer
 
+[![Build Status](https://travis-ci.com/manojc/xtreamer.svg?branch=master)](https://travis-ci.com/manojc/xtreamer)
+
 - [Xtreamer](#xtreamer)
   - [Background](#background)
   - [Why Xtreamer ?](#why-xtreamer)
