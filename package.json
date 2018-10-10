@@ -16,6 +16,10 @@
         "streams",
         "reader"
     ],
+    "engines": {
+        "node": ">=6.0.0",
+        "npm": ">=3.8.6"
+    },
     "author": "Manoj Chalode <chalodem@gmail.com>",
     "license": "MIT",
     "bugs": {
