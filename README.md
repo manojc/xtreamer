@@ -6,8 +6,9 @@
 [![Build Status][travis-image]][travis-url]
 [![License][license-image]][license-url]
 [![npm][downloads-image]][downloads-url]
-![Hackage-Deps](https://img.shields.io/hackage-deps/v/lens.svg)
-![David](https://img.shields.io/david/dev/manojc/xtreamer.svg)
+[![Hackage-Deps][dependency-image]][dependency-url]
+[![David][dev-dependency-image]][dev-dependency-url]
+
 
 [travis-url]: https://travis-ci.com/manojc/xtreamer
 [travis-image]: https://travis-ci.com/manojc/xtreamer.svg?branch=master
@@ -23,6 +24,12 @@
 
 [node-version-url]: https://github.com/manojc/xtreamer
 [node-version-image]: https://img.shields.io/badge/node-%3E=6.0-blue.svg?style=flat-square
+
+[dependency-url]: https://www.npmjs.com/package/xtreamer
+[dependency-image]: https://img.shields.io/hackage-deps/v/lens.svg
+
+[dev-dependency-url]: https://www.npmjs.com/package/xtreamer
+[dev-dependency-image]: https://img.shields.io/david/dev/manojc/xtreamer.svg
 
 
 
