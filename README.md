@@ -1,7 +1,22 @@
 
 # Xtreamer
 
-[![Build Status](https://travis-ci.com/manojc/xtreamer.svg?branch=master)](https://travis-ci.com/manojc/xtreamer)
+[![npm version][npm-image]][npm-url]
+[![Build Status][travis-image]][travis-url]
+[![License][license-image]][license-url]
+[![npm][downloads-image]][downloads-url]
+[![node](https://img.shields.io/node/v/xtreamer.svg)](https://github.com/manojc/xtreamer)
+
+[travis-url]: https://travis-ci.com/manojc/xtreamer
+[travis-image]: https://travis-ci.com/manojc/xtreamer.svg?branch=master
+[npm-url]: https://www.npmjs.com/package/xtreamer
+[npm-image]: https://img.shields.io/npm/v/xtreamer.svg
+[license-url]: https://opensource.org/licenses/MIT
+[license-image]: https://img.shields.io/npm/l/make-coverage-badge.svg
+[downloads-url]: https://www.npmjs.com/package/xtreamer
+[downloads-image]: https://img.shields.io/npm/dm/xtreamer.svg
+
+
 
 - [Xtreamer](#xtreamer)
   - [Background](#background)
