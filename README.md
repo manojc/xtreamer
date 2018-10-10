@@ -2,19 +2,27 @@
 # Xtreamer
 
 [![npm version][npm-image]][npm-url]
+[![node][node-version-image]][node-version-url]
 [![Build Status][travis-image]][travis-url]
 [![License][license-image]][license-url]
 [![npm][downloads-image]][downloads-url]
-[![node](https://img.shields.io/node/v/xtreamer.svg)](https://github.com/manojc/xtreamer)
+![Hackage-Deps](https://img.shields.io/hackage-deps/v/lens.svg)
+![David](https://img.shields.io/david/dev/manojc/xtreamer.svg)
 
 [travis-url]: https://travis-ci.com/manojc/xtreamer
 [travis-image]: https://travis-ci.com/manojc/xtreamer.svg?branch=master
+
 [npm-url]: https://www.npmjs.com/package/xtreamer
 [npm-image]: https://img.shields.io/npm/v/xtreamer.svg
+
 [license-url]: https://opensource.org/licenses/MIT
 [license-image]: https://img.shields.io/npm/l/make-coverage-badge.svg
+
 [downloads-url]: https://www.npmjs.com/package/xtreamer
 [downloads-image]: https://img.shields.io/npm/dm/xtreamer.svg
+
+[node-version-url]: https://github.com/manojc/xtreamer
+[node-version-image]: https://img.shields.io/badge/node-%3E=6.0-blue.svg?style=flat-square
 
 
 
