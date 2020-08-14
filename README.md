@@ -1,4 +1,3 @@
-
 # Xtreamer
 
 [![npm version][npm-image]][npm-url]
@@ -115,7 +114,7 @@ xtreamerTransform.on("data", (data) => { });
 
 ### max_xml_size ( default - 10000000 )
 
-`max_xml_size` is maximum the number of characters allowed to hold in memory. 
+`max_xml_size` is maximum the number of characters allowed to hold in memory.
 
 `xtreamer` raises an `error` event in case in memory xml string exceed specified limit. This ensures that the node process doesn't get terminated because of excess in memory data collection.
 
@@ -144,6 +143,34 @@ This function is supposed to accept an xml string as a parameter and should retu
 Note that the converted JSON is internally stringified before sending it back to in data event handler. So it is advised that the transformer function should always return valid JSON object in response.
 
 In case transformer function encounters an error, `xtreamer` emits `error` event and stops the xml conversion process.
+
+## pass_all_nodes (default - false)
+
+`pass_all_nodes` defines whether to pass only matching nodes or all of them.
+
+This can be helpful when modifying an XML document on the fly without loosing non matching nodes.
+
+```javascript
+const xtreamer = require("xtreamer");
+// Override `pass_all_nodes`
+const options = {  pass_all_nodes: true };
+const xtreamer = Xtreamer("XmlNode", options)
+```
+
+The receiving function must verify before processing, i.e.
+```javascript
+// A piped transformer
+async _transform(chunk, enc, done) {
+  if (Buffer.isBuffer(chunk)) chunk = chunk.toString();
+  if (!chunk.startsWith("<XmlNode")) {
+      // Not interesting, just pipe out
+      this.push(chunk);
+  }
+  // Do something with an interesting matching node as usual
+  this.push(chunk + "\n");
+  done();
+}
+```
 
 ## Usage
 
